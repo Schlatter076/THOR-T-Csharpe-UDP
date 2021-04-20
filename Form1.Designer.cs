@@ -101,6 +101,8 @@ namespace THOR_T_Csharpe
             this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.detailBox = new System.Windows.Forms.CheckBox();
+            this.stepBox = new System.Windows.Forms.TextBox();
+            this.label19 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -694,6 +696,8 @@ namespace THOR_T_Csharpe
             // 
             // groupBox6
             // 
+            this.groupBox6.Controls.Add(this.stepBox);
+            this.groupBox6.Controls.Add(this.label19);
             this.groupBox6.Controls.Add(this.button2);
             this.groupBox6.Controls.Add(this.datumButt);
             this.groupBox6.Controls.Add(this.datum_slow);
@@ -802,7 +806,7 @@ namespace THOR_T_Csharpe
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(96, 16);
             this.checkBox1.TabIndex = 35;
-            this.checkBox1.Text = "运动方向：负";
+            this.checkBox1.Text = "运动方向：上";
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
@@ -882,6 +886,23 @@ namespace THOR_T_Csharpe
             this.detailBox.TabIndex = 2;
             this.detailBox.Text = "Detail";
             this.detailBox.UseVisualStyleBackColor = true;
+            // 
+            // stepBox
+            // 
+            this.stepBox.Location = new System.Drawing.Point(114, 298);
+            this.stepBox.Name = "stepBox";
+            this.stepBox.Size = new System.Drawing.Size(52, 21);
+            this.stepBox.TabIndex = 45;
+            this.stepBox.Text = "0.05";
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(10, 308);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(29, 12);
+            this.label19.TabIndex = 44;
+            this.label19.Text = "步长";
             // 
             // Form1
             // 
@@ -981,6 +1002,8 @@ namespace THOR_T_Csharpe
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.TextBox node11Box;
         private System.Windows.Forms.CheckBox detailBox;
+        private System.Windows.Forms.TextBox stepBox;
+        private System.Windows.Forms.Label label19;
     }
 }
 

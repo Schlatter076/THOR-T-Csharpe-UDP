@@ -32,6 +32,8 @@ namespace THOR_T_Csharpe
         public float[] single_speed = new float[4] { 1, 1, 1, 1 };  //单轴运动速度
         public int dir = -1;             //运动方向(默认负向==向上)
 
+        public float step_dist = 0.005f;
+
         public int home_mode = 3;  //回零模式
         public float home_speed = 2;  //回零速度
         public float slow_speed = 1;  //回零爬行速度
@@ -44,10 +46,8 @@ namespace THOR_T_Csharpe
         public float node_offset = 0.05f; //节点力度的浮动范围
         public volatile bool motor_GoOn = false;  //是否允许电机继续运行
         public volatile float current_forceVal = 0.0f;
-
-        public byte[] force_bytes = new byte[4]; //压力的十六进制表示数组
-        public float force_f = 0.0f;   //压力的浮点数表示
-
+        public volatile bool Accept_Succ = false;  //动了一步之后等待数据传回
+        
         public string Socket_IP = "127.0.0.1";
         public int Socket_Port = 50088;
 
@@ -146,8 +146,8 @@ namespace THOR_T_Csharpe
                     nodes[7] = Convert.ToInt32(node8Box.Text);
                     nodes[8] = Convert.ToInt32(node9Box.Text);
                     nodes[9] = Convert.ToInt32(node10Box.Text);
-
-                    motorRun(-1);  //电机开始走动
+                    nodes[10] = Convert.ToInt32(node11Box.Text);
+                    step_dist = Convert.ToSingle(stepBox.Text);
 
                     //主测试线程启动
                     threadMainTest = new Thread(test);
@@ -398,12 +398,12 @@ namespace THOR_T_Csharpe
         {
             if (checkBox1.Checked == false)
             {
-                checkBox1.Text = "运动方向：正";
+                checkBox1.Text = "运动方向：下";
                 dir = 1;
             }
             else
             {
-                checkBox1.Text = "运动方向：负";
+                checkBox1.Text = "运动方向：上";
                 dir = -1;
             }
         }
@@ -477,13 +477,18 @@ namespace THOR_T_Csharpe
                 if (message.Contains("OK"))
                 {
                     motor_GoOn = true;
+                    addInfoString("OK");
                 }
                 else
                 {
                     //客户端发送ascii数据>>1:371.7,36986,3678,0
                     string[] vals = message.Split(':')[1].Split(',');
                     current_forceVal = Convert.ToSingle(vals[0]);  //获取到当前拉力值
+                    Accept_Succ = true;
                 }
+                // 回收临时数据
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
         }
         #endregion
@@ -494,34 +499,48 @@ namespace THOR_T_Csharpe
             {
                 if (node_counter <= node_num)  //节点数据未走完
                 {
-                    if (current_forceVal <= (nodes[node_counter] + nodes[node_counter] * node_offset) && 
-                        current_forceVal >= (nodes[node_counter] - nodes[node_counter] * node_offset) &&
-                        old_counter == node_counter)
+                    if(old_counter == node_counter)  //到达节点前不停止走动
                     {
-                        current_forceVal = 0; //清空拉力值
-                        addInfoString("到达节点" + (node_counter + 1));
-                        single_axis = Convert.ToInt32(axisnum.Text);
-                        zmcaux.ZAux_Direct_Single_Cancel(g_handle, single_axis, 2);
-                        node_counter++;
+                        if (current_forceVal <= (nodes[node_counter] + nodes[node_counter] * node_offset) &&
+                            current_forceVal >= (nodes[node_counter] - nodes[node_counter] * node_offset))
+                        {
+                            current_forceVal = 0; //清空拉力值
+                            addInfoString("到达节点" + (node_counter + 1));
+                            single_axis = Convert.ToInt32(axisnum.Text);
+                            zmcaux.ZAux_Direct_Single_Cancel(g_handle, single_axis, 2);  //停止当前轴
+                            node_counter++;
+                        }
+                        //每次读取拉力大小，确保电机要走的方向
+                        else if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
+                        {
+                            motorRunStep(single_axis, single_speed[single_axis], step_dist * -1);
+                        }
+                        else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
+                        {
+                            motorRunStep(single_axis, single_speed[single_axis], step_dist);
+                        }
                     }
+                    
                     if (motor_GoOn) //电机是否继续运行标志
                     {
                         motor_GoOn = false;
                         if (node_counter != 0 && node_counter < node_num && old_counter != node_counter) //至少已经走到了第一节点
                         {
                             old_counter = node_counter;  //防止未收到OK信息程序就运行
-                            if (nodes[node_counter] > nodes[node_counter - 1])
+
+                            /*single_speed[single_axis] = 0.05f;  //电机运行速度下降
+                            single_sp.Text = "0.05";
+
+                            if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
                             {
-                                single_speed[single_axis] = 0.1f;
                                 motorRun(-1);
                             }
-                            else
+                            else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
                             {
-                                single_speed[single_axis] = 0.1f;
                                 motorRun(1);
-                            }
+                            }*/
                         }
-                        else if(node_counter == node_num)
+                        else if (node_counter == node_num)
                         {
                             addInfoString("所有节点测试完毕，电机归位!");
                             testButt.Text = "启动测试";
@@ -538,33 +557,78 @@ namespace THOR_T_Csharpe
                         }
                     }
                 }
-                /*else
+                //等待拉力数据传回，以判定是否继续前行
+                while (!Accept_Succ)
                 {
-                    addInfoString("所有节点测试完毕，电机归位!");
-                    testButt.Text = "启动测试";
-                    testButt.BackColor = Color.Snow;
-                    clearNodeFlags();
-                    motorGoHome(3); //回原点
-                    node_counter = 0;
-                    motor_GoOn = false;
-                    threadMainTest.Abort();
-                    threadMainTest = null;
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                }*/
+                    Thread.Sleep(5);  //线程休眠5ms
+                }
+                Accept_Succ = false;
             }
         }
         #endregion
         #region  电机运动
         private void motorRun(int m_dir)
         {
+            //调整运动方向
+            dir = m_dir;
+            if(dir == 1)
+            {
+                checkBox1.Checked = false;
+                checkBox1.Text = "运动方向：下";
+            }
+            else
+            {
+                checkBox1.Checked = true;
+                checkBox1.Text = "运动方向：上";
+            }
+
+
             //设置轴参数
             zmcaux.ZAux_Direct_SetAtype(g_handle, single_axis, 1);
             zmcaux.ZAux_Direct_SetUnits(g_handle, single_axis, 4000); //脉冲当量为4000
             zmcaux.ZAux_Direct_SetSpeed(g_handle, single_axis, single_speed[single_axis]);  //1mm/s
             zmcaux.ZAux_Direct_SetInvertStep(g_handle, single_axis, 1); //运动模式为脉冲+方向
-            zmcaux.ZAux_Direct_Single_Vmove(g_handle, single_axis, m_dir); //正向运动
+            zmcaux.ZAux_Direct_Single_Vmove(g_handle, single_axis, dir); //正向运动
             addInfoString("速度:" + single_speed[single_axis] + "mm/s," + checkBox1.Text);
+        }
+        private void motorSetDir(int m_dir)
+        {
+            //调整运动方向
+            dir = m_dir;
+            if (dir == 1)
+            {
+                checkBox1.Checked = false;
+                checkBox1.Text = "运动方向：下";
+            }
+            else
+            {
+                checkBox1.Checked = true;
+                checkBox1.Text = "运动方向：上";
+            }
+            zmcaux.ZAux_Direct_Single_Vmove(g_handle, single_axis, dir);
+        }
+        #endregion
+        #region  电机发生位移
+        /**
+         * 电机移动一步
+         * @axis 轴号 0-X 1-Y
+         * @speed 速度 mm/s
+         * @dist  距离  负数代表向上，正数代表向下
+         * @return none
+         */
+        private void motorRunStep(int axis, float speed, float dist)
+        {
+            //相对
+            zmcaux.ZAux_Direct_SetSpeed(g_handle, axis, speed);     //设置速度
+            zmcaux.ZAux_Direct_Single_Move(g_handle, axis, dist);
+            if(dist > 0)
+            {
+                addInfoString("速度:" + speed + "mm/s,向下走" + dist + "mm");
+            }
+            else
+            {
+                addInfoString("速度:" + speed + "mm/s,向上走" + (dist * -1) + "mm");
+            }
         }
         #endregion
         #region 电机寻找零位
@@ -634,6 +698,7 @@ namespace THOR_T_Csharpe
             node9Box.Text = ConfigurationManager.AppSettings["node9"];
             node10Box.Text = ConfigurationManager.AppSettings["node10"];
             node11Box.Text = ConfigurationManager.AppSettings["node11"];
+            stepBox.Text = ConfigurationManager.AppSettings["step"];
         }
         private void setConfig()
         {
@@ -659,6 +724,7 @@ namespace THOR_T_Csharpe
             configuration.AppSettings.Settings["node9"].Value = this.node9Box.Text;
             configuration.AppSettings.Settings["node10"].Value = this.node10Box.Text;
             configuration.AppSettings.Settings["node11"].Value = this.node11Box.Text;
+            configuration.AppSettings.Settings["step"].Value = this.stepBox.Text;
 
             configuration.Save();
             ConfigurationManager.RefreshSection("appSettings");//重新加载新的配置文件
