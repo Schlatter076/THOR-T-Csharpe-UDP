@@ -1,0 +1,10 @@
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe-UDP\bin\x64\Debug\THOR-T-Csharpe-UDP.exe.config
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe-UDP\bin\x64\Debug\THOR-T-Csharpe-UDP.exe
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe-UDP\bin\x64\Debug\THOR-T-Csharpe-UDP.pdb
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe-UDP\obj\Debug\THOR_T_Csharpe.Form1.resources
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe-UDP\obj\Debug\THOR_T_Csharpe.Properties.Resources.resources
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe-UDP\obj\Debug\THOR-T-Csharpe-UDP.csproj.GenerateResource.cache
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe-UDP\obj\Debug\THOR-T-Csharpe-UDP.csproj.CoreCompileInputs.cache
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe-UDP\obj\Debug\THOR-T-Csharpe-UDP.exe
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe-UDP\obj\Debug\THOR-T-Csharpe-UDP.pdb
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe-UDP\obj\Debug\THOR-T-Csharpe-UDP.csprojAssemblyReference.cache

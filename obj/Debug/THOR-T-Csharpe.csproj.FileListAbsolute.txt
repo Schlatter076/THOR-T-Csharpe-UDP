@@ -1,0 +1,10 @@
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe\bin\x64\Debug\THOR-T-Csharpe.exe.config
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe\bin\x64\Debug\THOR-T-Csharpe.exe
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe\bin\x64\Debug\THOR-T-Csharpe.pdb
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe\obj\Debug\THOR_T_Csharpe.Properties.Resources.resources
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe\obj\Debug\THOR-T-Csharpe.csproj.GenerateResource.cache
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe\obj\Debug\THOR-T-Csharpe.csproj.CoreCompileInputs.cache
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe\obj\Debug\THOR-T-Csharpe.exe
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe\obj\Debug\THOR-T-Csharpe.pdb
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe\obj\Debug\THOR_T_Csharpe.Form1.resources
+E:\00Tacsense_Projects\THOR-testSystem\THOR-T-Csharpe\THOR-T-Csharpe\obj\Debug\THOR-T-Csharpe.csprojAssemblyReference.cache
