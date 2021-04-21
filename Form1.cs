@@ -47,7 +47,10 @@ namespace THOR_T_Csharpe
         public volatile bool motor_GoOn = false;  //是否允许电机继续运行
         public volatile float current_forceVal = 0.0f;
         public volatile bool Accept_Succ = false;  //动了一步之后等待数据传回
-        
+
+        public DateTime dtFrom = new DateTime(2021, 1, 1, 0, 0, 0, 0);  //起始时间
+        public long start_mills = 0;
+
         public string Socket_IP = "127.0.0.1";
         public int Socket_Port = 50088;
 
@@ -153,6 +156,7 @@ namespace THOR_T_Csharpe
                     threadMainTest = new Thread(test);
                     threadMainTest.IsBackground = true;
                     threadMainTest.Start();  //启动主测试流程
+                    start_mills = getCurrentMills();
                 }
                 //若在测试中，则可以取消
                 else if (testButt.Text.Equals("测试中"))
@@ -169,7 +173,7 @@ namespace THOR_T_Csharpe
                         motorGoHome(3);  //正向回零
                         motor_GoOn = false;
                         clearNodeFlags();
-                        addInfoString("测试中断");
+                        addInfoString("测试中断,用时:" + (getCurrentMills() - start_mills) + "ms");
                     }
                 }
             }
@@ -304,7 +308,7 @@ namespace THOR_T_Csharpe
                 single_axis = Convert.ToInt32(axisnum.Text);
                 single_speed[single_axis] = Convert.ToSingle(single_sp.Text);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }
@@ -469,7 +473,7 @@ namespace THOR_T_Csharpe
                 int length = socketwatch.ReceiveFrom(data, ref remoteEndPoint);//这个方法会把数据的来源（IP地址，端口号）放在第二个参数
 
                 string message = Encoding.UTF8.GetString(data, 0, length);
-                if(detailBox.Checked)
+                if (detailBox.Checked)
                 {
                     addInfoString("From Port " + (remoteEndPoint as IPEndPoint).Port.ToString() + ">>" + message);
                 }
@@ -477,13 +481,18 @@ namespace THOR_T_Csharpe
                 if (message.Contains("OK"))
                 {
                     motor_GoOn = true;
-                    addInfoString("OK");
+                    addInfoString("Capture=" + current_forceVal);
+                    //nodes[node_counter] = (int)current_forceVal - 35;
                 }
                 else
                 {
                     //客户端发送ascii数据>>1:371.7,36986,3678,0
                     string[] vals = message.Split(':')[1].Split(',');
                     current_forceVal = Convert.ToSingle(vals[0]);  //获取到当前拉力值
+                    if (current_forceVal > 20)
+                    {
+                        step_dist = 0.005f;
+                    }
                     Accept_Succ = true;
                 }
                 // 回收临时数据
@@ -495,14 +504,17 @@ namespace THOR_T_Csharpe
         #region 主测试流程
         private void test()
         {
+
             while (true)
             {
                 if (node_counter <= node_num)  //节点数据未走完
                 {
-                    if(old_counter == node_counter)  //到达节点前不停止走动
+                    if (old_counter == node_counter)  //到达节点前不停止走动
                     {
                         if (current_forceVal <= (nodes[node_counter] + nodes[node_counter] * node_offset) &&
                             current_forceVal >= (nodes[node_counter] - nodes[node_counter] * node_offset))
+                        /*if (current_forceVal <= (nodes[node_counter] + 10) &&
+                        current_forceVal >= (nodes[node_counter] - 10))*/
                         {
                             current_forceVal = 0; //清空拉力值
                             addInfoString("到达节点" + (node_counter + 1));
@@ -512,15 +524,17 @@ namespace THOR_T_Csharpe
                         }
                         //每次读取拉力大小，确保电机要走的方向
                         else if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
+                        //else if (current_forceVal < (nodes[node_counter] - 10))
                         {
                             motorRunStep(single_axis, single_speed[single_axis], step_dist * -1);
                         }
                         else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
+                        //else if (current_forceVal > (nodes[node_counter] + 10))
                         {
                             motorRunStep(single_axis, single_speed[single_axis], step_dist);
                         }
                     }
-                    
+
                     if (motor_GoOn) //电机是否继续运行标志
                     {
                         motor_GoOn = false;
@@ -542,7 +556,7 @@ namespace THOR_T_Csharpe
                         }
                         else if (node_counter == node_num)
                         {
-                            addInfoString("所有节点测试完毕，电机归位!");
+                            addInfoString("所有节点测试完毕，电机归位\r\n用时:" + (getCurrentMills() - start_mills) + "ms");
                             testButt.Text = "启动测试";
                             testButt.BackColor = Color.Snow;
                             clearNodeFlags();
@@ -571,7 +585,7 @@ namespace THOR_T_Csharpe
         {
             //调整运动方向
             dir = m_dir;
-            if(dir == 1)
+            if (dir == 1)
             {
                 checkBox1.Checked = false;
                 checkBox1.Text = "运动方向：下";
@@ -621,7 +635,7 @@ namespace THOR_T_Csharpe
             //相对
             zmcaux.ZAux_Direct_SetSpeed(g_handle, axis, speed);     //设置速度
             zmcaux.ZAux_Direct_Single_Move(g_handle, axis, dist);
-            if(dist > 0)
+            if (dist > 0)
             {
                 addInfoString("速度:" + speed + "mm/s,向下走" + dist + "mm");
             }
@@ -730,6 +744,12 @@ namespace THOR_T_Csharpe
             ConfigurationManager.RefreshSection("appSettings");//重新加载新的配置文件
         }
         #endregion
-
+        #region  获取当前时间的毫秒值
+        private long getCurrentMills()
+        {
+            long current = (DateTime.Now.Ticks - dtFrom.Ticks) / 10000;
+            return current;
+        }
+        #endregion
     }
 }
