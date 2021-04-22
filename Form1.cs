@@ -39,17 +39,21 @@ namespace THOR_T_Csharpe
         public float slow_speed = 1;  //回零爬行速度
 
         public int node_num = 0;  //待测试的节点总数
-        public int[] nodes = new int[11];  //每一个节点的力度大小
+        public volatile int[] nodes = new int[11];  //每一个节点的力度大小
         public bool[] node_flags = new bool[11];  //到达每个节点的标志位
         public volatile int node_counter = 0;  //已到达的节点计数器
         public volatile int old_counter = 0;  //上一次的节点计数器
         public float node_offset = 0.05f; //节点力度的浮动范围
         public volatile bool motor_GoOn = false;  //是否允许电机继续运行
         public volatile float current_forceVal = 0.0f;
+        public volatile float capture_forceVal = 0.0f;
         public volatile bool Accept_Succ = false;  //动了一步之后等待数据传回
 
         public DateTime dtFrom = new DateTime(2021, 1, 1, 0, 0, 0, 0);  //起始时间
         public long start_mills = 0;
+
+        public System.Timers.Timer timer_TO;
+        public System.Timers.Timer timer_AJ;
 
         public string Socket_IP = "127.0.0.1";
         public int Socket_Port = 50088;
@@ -66,11 +70,18 @@ namespace THOR_T_Csharpe
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 11; i++)
             {
                 nodes[i] = 0;
             }
             getConfig();
+            timer_TO = new System.Timers.Timer(8000);//实例化Timer类，设置间隔时间为10000毫秒；
+            timer_TO.Elapsed += new System.Timers.ElapsedEventHandler(timeOut);//到达时间的时候执行事件；
+            timer_TO.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
+            //力的差值过大自动调节一步
+            timer_AJ = new System.Timers.Timer(2000);//实例化Timer类，设置间隔时间为2000毫秒；
+            timer_AJ.Elapsed += new System.Timers.ElapsedEventHandler(adjustment);//到达时间的时候执行事件；
+            timer_AJ.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
         }
         #endregion
         #region 连接到控制器事件
@@ -137,6 +148,11 @@ namespace THOR_T_Csharpe
                     single_speed[single_axis] = Convert.ToSingle(single_sp.Text);
                     //获取需要测试的节点数和每个节点的值
                     node_num = Convert.ToInt32(node_numBox.Text);
+                    if(node_num > 11)
+                    {
+                        addInfoString("超出节点配置范围!!!");
+                        return;
+                    }
                     node_counter = 0;
                     old_counter = 0;
                     nodes[0] = Convert.ToInt32(node1Box.Text);
@@ -151,6 +167,8 @@ namespace THOR_T_Csharpe
                     nodes[9] = Convert.ToInt32(node10Box.Text);
                     nodes[10] = Convert.ToInt32(node11Box.Text);
                     step_dist = Convert.ToSingle(stepBox.Text);
+
+                    testTimeLabel.Text = "";
 
                     //主测试线程启动
                     threadMainTest = new Thread(test);
@@ -481,8 +499,13 @@ namespace THOR_T_Csharpe
                 if (message.Contains("OK"))
                 {
                     motor_GoOn = true;
-                    addInfoString("Capture=" + current_forceVal);
-                    //nodes[node_counter] = (int)current_forceVal - 35;
+                    capture_forceVal = current_forceVal;
+                    addInfoString("Capture=" + capture_forceVal);
+                    //判断是否需要动态调节下一节点的测试值
+                    if (node_counter > 0 && node_counter < node_num && adjustCheckBox.Checked)
+                    {
+                        nodes[node_counter] = (capture_forceVal > 80) ? ((int)capture_forceVal - 50) : ((int)capture_forceVal + 50);
+                    }
                 }
                 else
                 {
@@ -504,32 +527,35 @@ namespace THOR_T_Csharpe
         #region 主测试流程
         private void test()
         {
-
             while (true)
             {
                 if (node_counter <= node_num)  //节点数据未走完
                 {
                     if (old_counter == node_counter)  //到达节点前不停止走动
                     {
-                        if (current_forceVal <= (nodes[node_counter] + nodes[node_counter] * node_offset) &&
-                            current_forceVal >= (nodes[node_counter] - nodes[node_counter] * node_offset))
-                        /*if (current_forceVal <= (nodes[node_counter] + 10) &&
-                        current_forceVal >= (nodes[node_counter] - 10))*/
+                        /*if (current_forceVal <= (nodes[node_counter] + nodes[node_counter] * node_offset) &&
+                            current_forceVal >= (nodes[node_counter] - nodes[node_counter] * node_offset))*/
+                        if (current_forceVal <= (nodes[node_counter] + 10) &&
+                        current_forceVal >= (nodes[node_counter] - 10))
                         {
+                            addInfoString("到达节点" + (node_counter + 1) + ",F=" + current_forceVal);
                             current_forceVal = 0; //清空拉力值
-                            addInfoString("到达节点" + (node_counter + 1));
                             single_axis = Convert.ToInt32(axisnum.Text);
                             zmcaux.ZAux_Direct_Single_Cancel(g_handle, single_axis, 2);  //停止当前轴
                             node_counter++;
+                            //检测捕获是否超时
+                            timer_TO.Start();
+                            //启动自我调节
+                            timer_AJ.Start();
                         }
                         //每次读取拉力大小，确保电机要走的方向
-                        else if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
-                        //else if (current_forceVal < (nodes[node_counter] - 10))
+                        //else if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
+                        else if (current_forceVal < (nodes[node_counter] - 10))
                         {
                             motorRunStep(single_axis, single_speed[single_axis], step_dist * -1);
                         }
-                        else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
-                        //else if (current_forceVal > (nodes[node_counter] + 10))
+                        //else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
+                        else if (current_forceVal > (nodes[node_counter] + 10))
                         {
                             motorRunStep(single_axis, single_speed[single_axis], step_dist);
                         }
@@ -538,25 +564,16 @@ namespace THOR_T_Csharpe
                     if (motor_GoOn) //电机是否继续运行标志
                     {
                         motor_GoOn = false;
+                        timer_TO.Stop(); //取消超时检测
+                        timer_AJ.Stop(); //取消自动位置调整
                         if (node_counter != 0 && node_counter < node_num && old_counter != node_counter) //至少已经走到了第一节点
                         {
                             old_counter = node_counter;  //防止未收到OK信息程序就运行
-
-                            /*single_speed[single_axis] = 0.05f;  //电机运行速度下降
-                            single_sp.Text = "0.05";
-
-                            if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
-                            {
-                                motorRun(-1);
-                            }
-                            else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
-                            {
-                                motorRun(1);
-                            }*/
                         }
                         else if (node_counter == node_num)
                         {
-                            addInfoString("所有节点测试完毕，电机归位\r\n用时:" + (getCurrentMills() - start_mills) + "ms");
+                            //addInfoString("所有节点测试完毕，电机归位\r\n用时:" + (getCurrentMills() - start_mills) + "ms");
+                            testTimeLabel.Text = "" + (getCurrentMills() - start_mills);
                             testButt.Text = "启动测试";
                             testButt.BackColor = Color.Snow;
                             clearNodeFlags();
@@ -574,7 +591,7 @@ namespace THOR_T_Csharpe
                 //等待拉力数据传回，以判定是否继续前行
                 while (!Accept_Succ)
                 {
-                    Thread.Sleep(5);  //线程休眠5ms
+                    Thread.Sleep(1);  //线程休眠1ms
                 }
                 Accept_Succ = false;
             }
@@ -635,13 +652,16 @@ namespace THOR_T_Csharpe
             //相对
             zmcaux.ZAux_Direct_SetSpeed(g_handle, axis, speed);     //设置速度
             zmcaux.ZAux_Direct_Single_Move(g_handle, axis, dist);
-            if (dist > 0)
+            if(runDetailBox.Checked)
             {
-                addInfoString("速度:" + speed + "mm/s,向下走" + dist + "mm");
-            }
-            else
-            {
-                addInfoString("速度:" + speed + "mm/s,向上走" + (dist * -1) + "mm");
+                if (dist > 0)
+                {
+                    addInfoString("速度:" + speed + "mm/s,向下走" + dist + "mm");
+                }
+                else
+                {
+                    addInfoString("速度:" + speed + "mm/s,向上走" + (dist * -1) + "mm");
+                }
             }
         }
         #endregion
@@ -749,6 +769,63 @@ namespace THOR_T_Csharpe
         {
             long current = (DateTime.Now.Ticks - dtFrom.Ticks) / 10000;
             return current;
+        }
+        #endregion
+        #region 到达节点和捕获数据超时处理
+        private void timeOut(object source, System.Timers.ElapsedEventArgs e)
+        {
+            addInfoString("捕获超时,自动调节");
+            if(node_counter > 0)
+            {
+                node_counter -= 1;
+                //超时后必须按照上一次捕获值重新进行调节节点值
+                nodes[node_counter] = (capture_forceVal > 80) ? ((int)capture_forceVal - 50) : ((int)capture_forceVal + 50);
+            }
+        }
+        #endregion
+        #region 自动调节电机位置
+        private void adjustment(object source, System.Timers.ElapsedEventArgs e)
+        {
+            //if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
+            if (current_forceVal < (nodes[node_counter - 1] - 10))
+            {
+                motorRunStep(single_axis, single_speed[single_axis], step_dist * -1);
+            }
+            //else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
+            else if (current_forceVal > (nodes[node_counter - 1] + 10))
+            {
+                motorRunStep(single_axis, single_speed[single_axis], step_dist);
+            }
+        }
+        #endregion
+        #region 点动按键事件
+        private void upButt_Click(object sender, EventArgs e)
+        {
+            motorRunStep(single_axis, single_speed[single_axis], step_dist * -1);
+        }
+
+        private void downButt_Click(object sender, EventArgs e)
+        {
+            motorRunStep(single_axis, single_speed[single_axis], step_dist);
+        }
+        #endregion
+        #region 自动调节复选框
+        private void adjustCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if(!adjustCheckBox.Checked) //不需要自动调节，则按照设定的值
+            {
+                nodes[0] = Convert.ToInt32(node1Box.Text);
+                nodes[1] = Convert.ToInt32(node2Box.Text);
+                nodes[2] = Convert.ToInt32(node3Box.Text);
+                nodes[3] = Convert.ToInt32(node4Box.Text);
+                nodes[4] = Convert.ToInt32(node5Box.Text);
+                nodes[5] = Convert.ToInt32(node6Box.Text);
+                nodes[6] = Convert.ToInt32(node7Box.Text);
+                nodes[7] = Convert.ToInt32(node8Box.Text);
+                nodes[8] = Convert.ToInt32(node9Box.Text);
+                nodes[9] = Convert.ToInt32(node10Box.Text);
+                nodes[10] = Convert.ToInt32(node11Box.Text);
+            }
         }
         #endregion
     }
