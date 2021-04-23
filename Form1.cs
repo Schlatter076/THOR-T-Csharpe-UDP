@@ -32,7 +32,7 @@ namespace THOR_T_Csharpe
         public float[] single_speed = new float[4] { 1, 1, 1, 1 };  //单轴运动速度
         public int dir = -1;             //运动方向(默认负向==向上)
 
-        public float step_dist = 0.005f;
+        public float step_dist = 0.005f;  //电机单步运行步长
 
         public int home_mode = 3;  //回零模式
         public float home_speed = 2;  //回零速度
@@ -45,22 +45,22 @@ namespace THOR_T_Csharpe
         public volatile int old_counter = 0;  //上一次的节点计数器
         public float node_offset = 0.05f; //节点力度的浮动范围
         public volatile bool motor_GoOn = false;  //是否允许电机继续运行
-        public volatile float current_forceVal = 0.0f;
-        public volatile float capture_forceVal = 0.0f;
+        public volatile float current_forceVal = 0.0f;  //当前拉力值
+        public volatile float capture_forceVal = 0.0f;  //上一次的捕获值
         public volatile bool Accept_Succ = false;  //动了一步之后等待数据传回
 
         public DateTime dtFrom = new DateTime(2021, 1, 1, 0, 0, 0, 0);  //起始时间
-        public long start_mills = 0;
+        public long start_mills = 0;  //程序开始时的毫秒值
 
-        public System.Timers.Timer timer_TO;
-        public System.Timers.Timer timer_AJ;
+        public System.Timers.Timer timer_TO;  //捕获超时定时器
+        public System.Timers.Timer timer_AJ;  //行程调节定时器
 
-        public string Socket_IP = "127.0.0.1";
-        public int Socket_Port = 50088;
+        public string Socket_IP = "127.0.0.1";  //待连接的socketIP
+        public int Socket_Port = 50088;    //监听的socket端口
 
-        private Socket socketwatch = null;
-        private Thread threadwatch = null;
-        private Thread threadMainTest = null;
+        private Socket socketwatch = null;  //socket实例
+        private Thread threadwatch = null;  //socket监听线程
+        private Thread threadMainTest = null; //主测试线程
         #endregion
         #region  系统加载，无需更改
         public Form1()
