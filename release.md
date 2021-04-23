@@ -4,7 +4,7 @@
     ## Ethernet :
     1. Connect to the controller(HKZA-2WK) to drive the motor.
     ## Socket-UDP :
-    1. Monitor port(80088), get sampled data
+    1. Monitor port(80088), get sampled data.
 
 
 ## Removals :
@@ -16,10 +16,10 @@
 
 ## Known Issues :
 
+    Test time is too long.
 
 ## Back Compatibility :
 
     none
 
 ------
-
