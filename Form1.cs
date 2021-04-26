@@ -205,6 +205,7 @@ namespace THOR_T_Csharpe
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
                         motorGoHome(3);  //正向回零
+                        timer_TO.Stop();
                         motor_GoOn = false;
                         clearNodeFlags();
                         addInfoString("测试中断,用时:" + (getCurrentMills() - start_mills) + "ms");
@@ -552,10 +553,11 @@ namespace THOR_T_Csharpe
                     {
                         /*if (current_forceVal <= (nodes[node_counter] + nodes[node_counter] * node_offset) &&
                             current_forceVal >= (nodes[node_counter] - nodes[node_counter] * node_offset))*/
-                        if (current_forceVal <= (nodes[node_counter] + 10) &&
-                        current_forceVal >= (nodes[node_counter] - 10))
+                        if (current_forceVal <= (nodes[node_counter] + 20) &&
+                        current_forceVal >= (nodes[node_counter] - 20))
                         {
-                            addInfoString("到达节点" + (node_counter + 1) + ",F=" + current_forceVal);
+                            addInfoString("到达节点" + (node_counter + 1) + ",F=" + current_forceVal
+                                + "\r\n已运行:" + (getCurrentMills() - start_mills) + "ms");
                             current_forceVal = 0; //清空拉力值
                             single_axis = Convert.ToInt32(axisnum.Text);
                             zmcaux.ZAux_Direct_Single_Cancel(g_handle, single_axis, 2);  //停止当前轴
@@ -567,12 +569,12 @@ namespace THOR_T_Csharpe
                         }
                         //每次读取拉力大小，确保电机要走的方向
                         //else if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
-                        else if (current_forceVal < (nodes[node_counter] - 10))
+                        else if (current_forceVal < (nodes[node_counter] - 20))
                         {
                             motorRunStep(single_axis, single_speed[single_axis], step_dist * -1);
                         }
                         //else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
-                        else if (current_forceVal > (nodes[node_counter] + 10))
+                        else if (current_forceVal > (nodes[node_counter] + 20))
                         {
                             motorRunStep(single_axis, single_speed[single_axis], step_dist);
                         }
@@ -809,12 +811,12 @@ namespace THOR_T_Csharpe
         private void adjustment(object source, System.Timers.ElapsedEventArgs e)
         {
             //if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
-            if (current_forceVal < (nodes[node_counter - 1] - 10))
+            if (current_forceVal < (nodes[node_counter - 1] - 20))
             {
                 motorRunStep(single_axis, single_speed[single_axis], step_dist * -1);
             }
             //else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
-            else if (current_forceVal > (nodes[node_counter - 1] + 10))
+            else if (current_forceVal > (nodes[node_counter - 1] + 20))
             {
                 motorRunStep(single_axis, single_speed[single_axis], step_dist);
             }
