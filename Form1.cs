@@ -1,6 +1,9 @@
-﻿using System;
+﻿#define auto_test
+
+using System;
 using System.Drawing;
 using System.Text;
+
 using System.Windows.Forms;
 using System.Configuration;
 
@@ -10,7 +13,6 @@ using cszmcaux;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-
 
 namespace THOR_T_Csharpe
 {
@@ -61,6 +63,13 @@ namespace THOR_T_Csharpe
         private Socket socketwatch = null;  //socket实例
         private Thread threadwatch = null;  //socket监听线程
         private Thread threadMainTest = null; //主测试线程
+
+        //自动测试用
+#if auto_test
+        private Thread autoThread = null;
+        private bool auto_test_completed;
+        public int auto_test_counter = 0;
+#endif
         #endregion
         #region  系统加载，无需更改
         public Form1()
@@ -82,6 +91,11 @@ namespace THOR_T_Csharpe
             timer_AJ = new System.Timers.Timer(2000);//实例化Timer类，设置间隔时间为2000毫秒；
             timer_AJ.Elapsed += new System.Timers.ElapsedEventHandler(adjustment);//到达时间的时候执行事件；
             timer_AJ.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
+#if auto_test
+            autoThread = new Thread(autoTest);
+            autoThread.IsBackground = true;
+            autoThread.Start();
+#endif
         }
         #endregion
         #region 连接到控制器事件
@@ -148,11 +162,13 @@ namespace THOR_T_Csharpe
                     single_speed[single_axis] = Convert.ToSingle(single_sp.Text);
                     //获取需要测试的节点数和每个节点的值
                     node_num = Convert.ToInt32(node_numBox.Text);
-                    if(node_num > 11)
+                    if (node_num > 11)
                     {
                         addInfoString("超出节点配置范围!!!");
                         return;
                     }
+                    richTextBox1.Clear();  //清除日志显示区域
+
                     node_counter = 0;
                     old_counter = 0;
                     nodes[0] = Convert.ToInt32(node1Box.Text);
@@ -263,6 +279,7 @@ namespace THOR_T_Csharpe
         private void button1_Click_1(object sender, EventArgs e)
         {
             richTextBox1.Clear();
+
 
             //connect = 1;
 
@@ -514,7 +531,7 @@ namespace THOR_T_Csharpe
                     current_forceVal = Convert.ToSingle(vals[0]);  //获取到当前拉力值
                     if (current_forceVal > 20)
                     {
-                        step_dist = 0.005f;
+                        step_dist = Convert.ToSingle(step1Box.Text);
                     }
                     Accept_Succ = true;
                 }
@@ -581,6 +598,9 @@ namespace THOR_T_Csharpe
                             node_counter = 0;
                             old_counter = 0;
                             motor_GoOn = false;
+#if auto_test
+                            auto_test_completed = true;
+#endif
                             threadMainTest.Abort();
                             threadMainTest = null;
                             GC.Collect();
@@ -652,7 +672,7 @@ namespace THOR_T_Csharpe
             //相对
             zmcaux.ZAux_Direct_SetSpeed(g_handle, axis, speed);     //设置速度
             zmcaux.ZAux_Direct_Single_Move(g_handle, axis, dist);
-            if(runDetailBox.Checked)
+            if (runDetailBox.Checked)
             {
                 if (dist > 0)
                 {
@@ -733,6 +753,7 @@ namespace THOR_T_Csharpe
             node10Box.Text = ConfigurationManager.AppSettings["node10"];
             node11Box.Text = ConfigurationManager.AppSettings["node11"];
             stepBox.Text = ConfigurationManager.AppSettings["step"];
+            step1Box.Text = ConfigurationManager.AppSettings["step1"];
         }
         private void setConfig()
         {
@@ -759,6 +780,7 @@ namespace THOR_T_Csharpe
             configuration.AppSettings.Settings["node10"].Value = this.node10Box.Text;
             configuration.AppSettings.Settings["node11"].Value = this.node11Box.Text;
             configuration.AppSettings.Settings["step"].Value = this.stepBox.Text;
+            configuration.AppSettings.Settings["step1"].Value = this.step1Box.Text;
 
             configuration.Save();
             ConfigurationManager.RefreshSection("appSettings");//重新加载新的配置文件
@@ -775,7 +797,7 @@ namespace THOR_T_Csharpe
         private void timeOut(object source, System.Timers.ElapsedEventArgs e)
         {
             addInfoString("捕获超时,自动调节");
-            if(node_counter > 0)
+            if (node_counter > 0)
             {
                 node_counter -= 1;
                 //超时后必须按照上一次捕获值重新进行调节节点值
@@ -812,7 +834,7 @@ namespace THOR_T_Csharpe
         #region 自动调节复选框
         private void adjustCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if(!adjustCheckBox.Checked) //不需要自动调节，则按照设定的值
+            if (!adjustCheckBox.Checked) //不需要自动调节，则按照设定的值
             {
                 nodes[0] = Convert.ToInt32(node1Box.Text);
                 nodes[1] = Convert.ToInt32(node2Box.Text);
@@ -828,5 +850,33 @@ namespace THOR_T_Csharpe
             }
         }
         #endregion
+#if auto_test
+        private void autoTest()
+        {
+            while (true)
+            {
+                if (auto_test_completed)
+                {
+                    auto_test_completed = false;
+                    Thread.Sleep(10000);
+                    testButt.PerformClick();
+                    auto_test_counter++;
+                    this.Text = "THOR测试系统===" + auto_test_counter;
+                }
+            }
+        }
+#endif
+
+        private void button3_Click_1(object sender, EventArgs e)
+        {
+            int step_num = Convert.ToInt32(stepNumBox.Text);
+            //获取当前设置的轴
+            single_axis = Convert.ToInt32(axisnum.Text);
+            //获取当前轴的速度
+            single_speed[single_axis] = Convert.ToSingle(single_sp.Text);
+            //获取步长
+            step_dist = Convert.ToSingle(step1Box.Text);
+            motorRunStep(single_axis, single_speed[single_axis], step_dist * dir * step_num);
+        }
     }
 }
