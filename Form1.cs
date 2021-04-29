@@ -1,4 +1,4 @@
-﻿#define auto_test
+﻿//#define auto_test
 
 using System;
 using System.Drawing;
@@ -556,8 +556,11 @@ namespace THOR_T_Csharpe
                         if (current_forceVal <= (nodes[node_counter] + 20) &&
                         current_forceVal >= (nodes[node_counter] - 20))
                         {
-                            addInfoString("到达节点" + (node_counter + 1) + ",F=" + current_forceVal
-                                + "\r\n已运行:" + (getCurrentMills() - start_mills) + "ms");
+                            addInfoString("到达节点" + (node_counter + 1) + ",F=" + current_forceVal);
+                            if(node_counter == 0)
+                            {
+                                addInfoString("已运行:" + (getCurrentMills() - start_mills) + "ms");
+                            }
                             current_forceVal = 0; //清空拉力值
                             single_axis = Convert.ToInt32(axisnum.Text);
                             zmcaux.ZAux_Direct_Single_Cancel(g_handle, single_axis, 2);  //停止当前轴
@@ -798,9 +801,9 @@ namespace THOR_T_Csharpe
         #region 到达节点和捕获数据超时处理
         private void timeOut(object source, System.Timers.ElapsedEventArgs e)
         {
-            addInfoString("捕获超时,自动调节");
-            if (node_counter > 0)
+            if (node_counter > 1)
             {
+                addInfoString("捕获超时,自动调节");
                 node_counter -= 1;
                 //超时后必须按照上一次捕获值重新进行调节节点值
                 nodes[node_counter] = (capture_forceVal > 80) ? ((int)capture_forceVal - 50) : ((int)capture_forceVal + 50);
