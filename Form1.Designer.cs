@@ -48,6 +48,9 @@ namespace THOR_T_Csharpe
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.userLoadButt = new System.Windows.Forms.Button();
+            this.userSaveButt = new System.Windows.Forms.Button();
+            this.defaultLoadButt = new System.Windows.Forms.Button();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.runDetailBox = new System.Windows.Forms.CheckBox();
             this.detailBox = new System.Windows.Forms.CheckBox();
@@ -88,11 +91,14 @@ namespace THOR_T_Csharpe
             this.node_numBox = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.step1Box = new System.Windows.Forms.TextBox();
+            this.goButt = new System.Windows.Forms.Button();
+            this.stepNumBox = new System.Windows.Forms.TextBox();
+            this.label20 = new System.Windows.Forms.Label();
             this.downButt = new System.Windows.Forms.Button();
             this.upButt = new System.Windows.Forms.Button();
             this.stepBox = new System.Windows.Forms.TextBox();
             this.label19 = new System.Windows.Forms.Label();
-            this.button2 = new System.Windows.Forms.Button();
             this.datumButt = new System.Windows.Forms.Button();
             this.datum_slow = new System.Windows.Forms.TextBox();
             this.label39 = new System.Windows.Forms.Label();
@@ -107,12 +113,9 @@ namespace THOR_T_Csharpe
             this.sigle_moveButt = new System.Windows.Forms.Button();
             this.axisnum = new System.Windows.Forms.ComboBox();
             this.label34 = new System.Windows.Forms.Label();
+            this.defaultSaveButt = new System.Windows.Forms.Button();
             this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.label20 = new System.Windows.Forms.Label();
-            this.stepNumBox = new System.Windows.Forms.TextBox();
-            this.goButt = new System.Windows.Forms.Button();
-            this.step1Box = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -337,16 +340,50 @@ namespace THOR_T_Csharpe
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.userLoadButt);
+            this.groupBox2.Controls.Add(this.userSaveButt);
+            this.groupBox2.Controls.Add(this.defaultLoadButt);
             this.groupBox2.Controls.Add(this.groupBox4);
             this.groupBox2.Controls.Add(this.groupBox10);
             this.groupBox2.Controls.Add(this.groupBox3);
             this.groupBox2.Controls.Add(this.groupBox6);
             this.groupBox2.Controls.Add(this.groupBox1);
+            this.groupBox2.Controls.Add(this.defaultSaveButt);
             this.groupBox2.Location = new System.Drawing.Point(2, 2);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(828, 549);
+            this.groupBox2.Size = new System.Drawing.Size(828, 591);
             this.groupBox2.TabIndex = 73;
             this.groupBox2.TabStop = false;
+            // 
+            // userLoadButt
+            // 
+            this.userLoadButt.Location = new System.Drawing.Point(423, 556);
+            this.userLoadButt.Name = "userLoadButt";
+            this.userLoadButt.Size = new System.Drawing.Size(100, 23);
+            this.userLoadButt.TabIndex = 79;
+            this.userLoadButt.Text = "加载用户配置";
+            this.userLoadButt.UseVisualStyleBackColor = true;
+            this.userLoadButt.Click += new System.EventHandler(this.userLoadButt_Click);
+            // 
+            // userSaveButt
+            // 
+            this.userSaveButt.Location = new System.Drawing.Point(319, 556);
+            this.userSaveButt.Name = "userSaveButt";
+            this.userSaveButt.Size = new System.Drawing.Size(99, 23);
+            this.userSaveButt.TabIndex = 78;
+            this.userSaveButt.Text = "保存至用户配置";
+            this.userSaveButt.UseVisualStyleBackColor = true;
+            this.userSaveButt.Click += new System.EventHandler(this.userSaveButt_Click);
+            // 
+            // defaultLoadButt
+            // 
+            this.defaultLoadButt.Location = new System.Drawing.Point(120, 556);
+            this.defaultLoadButt.Name = "defaultLoadButt";
+            this.defaultLoadButt.Size = new System.Drawing.Size(96, 23);
+            this.defaultLoadButt.TabIndex = 77;
+            this.defaultLoadButt.Text = "加载默认配置";
+            this.defaultLoadButt.UseVisualStyleBackColor = true;
+            this.defaultLoadButt.Click += new System.EventHandler(this.defaultLoadButt_Click);
             // 
             // groupBox4
             // 
@@ -357,7 +394,7 @@ namespace THOR_T_Csharpe
             this.groupBox4.Controls.Add(this.richTextBox1);
             this.groupBox4.Location = new System.Drawing.Point(529, 155);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(294, 388);
+            this.groupBox4.Size = new System.Drawing.Size(294, 430);
             this.groupBox4.TabIndex = 76;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "INFO";
@@ -365,7 +402,7 @@ namespace THOR_T_Csharpe
             // runDetailBox
             // 
             this.runDetailBox.AutoSize = true;
-            this.runDetailBox.Location = new System.Drawing.Point(102, 364);
+            this.runDetailBox.Location = new System.Drawing.Point(96, 408);
             this.runDetailBox.Name = "runDetailBox";
             this.runDetailBox.Size = new System.Drawing.Size(72, 16);
             this.runDetailBox.TabIndex = 3;
@@ -375,7 +412,7 @@ namespace THOR_T_Csharpe
             // detailBox
             // 
             this.detailBox.AutoSize = true;
-            this.detailBox.Location = new System.Drawing.Point(194, 364);
+            this.detailBox.Location = new System.Drawing.Point(189, 408);
             this.detailBox.Name = "detailBox";
             this.detailBox.Size = new System.Drawing.Size(84, 16);
             this.detailBox.TabIndex = 2;
@@ -384,7 +421,7 @@ namespace THOR_T_Csharpe
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(6, 357);
+            this.button1.Location = new System.Drawing.Point(6, 401);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 1;
@@ -401,7 +438,7 @@ namespace THOR_T_Csharpe
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.ReadOnly = true;
             this.richTextBox1.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
-            this.richTextBox1.Size = new System.Drawing.Size(282, 331);
+            this.richTextBox1.Size = new System.Drawing.Size(282, 375);
             this.richTextBox1.TabIndex = 0;
             this.richTextBox1.Text = "";
             this.richTextBox1.UseWaitCursor = true;
@@ -774,7 +811,6 @@ namespace THOR_T_Csharpe
             this.groupBox6.Controls.Add(this.upButt);
             this.groupBox6.Controls.Add(this.stepBox);
             this.groupBox6.Controls.Add(this.label19);
-            this.groupBox6.Controls.Add(this.button2);
             this.groupBox6.Controls.Add(this.datumButt);
             this.groupBox6.Controls.Add(this.datum_slow);
             this.groupBox6.Controls.Add(this.label39);
@@ -796,9 +832,46 @@ namespace THOR_T_Csharpe
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "单轴运动";
             // 
+            // step1Box
+            // 
+            this.step1Box.Location = new System.Drawing.Point(113, 302);
+            this.step1Box.Name = "step1Box";
+            this.step1Box.Size = new System.Drawing.Size(53, 21);
+            this.step1Box.TabIndex = 52;
+            this.step1Box.Text = "0.005";
+            this.step1Box.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // goButt
+            // 
+            this.goButt.Location = new System.Drawing.Point(113, 330);
+            this.goButt.Name = "goButt";
+            this.goButt.Size = new System.Drawing.Size(53, 23);
+            this.goButt.TabIndex = 51;
+            this.goButt.Text = "go";
+            this.goButt.UseVisualStyleBackColor = true;
+            this.goButt.Click += new System.EventHandler(this.button3_Click_1);
+            // 
+            // stepNumBox
+            // 
+            this.stepNumBox.Location = new System.Drawing.Point(54, 332);
+            this.stepNumBox.Name = "stepNumBox";
+            this.stepNumBox.Size = new System.Drawing.Size(49, 21);
+            this.stepNumBox.TabIndex = 50;
+            this.stepNumBox.Text = "5";
+            this.stepNumBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Location = new System.Drawing.Point(12, 338);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(35, 12);
+            this.label20.TabIndex = 48;
+            this.label20.Text = "步数:";
+            // 
             // downButt
             // 
-            this.downButt.Location = new System.Drawing.Point(205, 289);
+            this.downButt.Location = new System.Drawing.Point(205, 330);
             this.downButt.Name = "downButt";
             this.downButt.Size = new System.Drawing.Size(32, 23);
             this.downButt.TabIndex = 47;
@@ -808,7 +881,7 @@ namespace THOR_T_Csharpe
             // 
             // upButt
             // 
-            this.upButt.Location = new System.Drawing.Point(205, 260);
+            this.upButt.Location = new System.Drawing.Point(205, 297);
             this.upButt.Name = "upButt";
             this.upButt.Size = new System.Drawing.Size(32, 23);
             this.upButt.TabIndex = 46;
@@ -833,16 +906,6 @@ namespace THOR_T_Csharpe
             this.label19.Size = new System.Drawing.Size(35, 12);
             this.label19.TabIndex = 44;
             this.label19.Text = "步长:";
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(194, 327);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 43;
-            this.button2.Text = "保存参数";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // datumButt
             // 
@@ -986,47 +1049,20 @@ namespace THOR_T_Csharpe
             this.label34.TabIndex = 18;
             this.label34.Text = "轴 号";
             // 
+            // defaultSaveButt
+            // 
+            this.defaultSaveButt.Location = new System.Drawing.Point(6, 556);
+            this.defaultSaveButt.Name = "defaultSaveButt";
+            this.defaultSaveButt.Size = new System.Drawing.Size(109, 23);
+            this.defaultSaveButt.TabIndex = 43;
+            this.defaultSaveButt.Text = "保存至默认配置";
+            this.defaultSaveButt.UseVisualStyleBackColor = true;
+            this.defaultSaveButt.Click += new System.EventHandler(this.button2_Click);
+            // 
             // timer1
             // 
             this.timer1.Interval = 100000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
-            // label20
-            // 
-            this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(12, 338);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(35, 12);
-            this.label20.TabIndex = 48;
-            this.label20.Text = "步数:";
-            // 
-            // stepNumBox
-            // 
-            this.stepNumBox.Location = new System.Drawing.Point(54, 332);
-            this.stepNumBox.Name = "stepNumBox";
-            this.stepNumBox.Size = new System.Drawing.Size(49, 21);
-            this.stepNumBox.TabIndex = 50;
-            this.stepNumBox.Text = "5";
-            this.stepNumBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            // 
-            // goButt
-            // 
-            this.goButt.Location = new System.Drawing.Point(113, 330);
-            this.goButt.Name = "goButt";
-            this.goButt.Size = new System.Drawing.Size(53, 23);
-            this.goButt.TabIndex = 51;
-            this.goButt.Text = "go";
-            this.goButt.UseVisualStyleBackColor = true;
-            this.goButt.Click += new System.EventHandler(this.button3_Click_1);
-            // 
-            // step1Box
-            // 
-            this.step1Box.Location = new System.Drawing.Point(113, 302);
-            this.step1Box.Name = "step1Box";
-            this.step1Box.Size = new System.Drawing.Size(53, 21);
-            this.step1Box.TabIndex = 52;
-            this.step1Box.Text = "0.005";
-            this.step1Box.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // Form1
             // 
@@ -1034,7 +1070,7 @@ namespace THOR_T_Csharpe
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(831, 556);
+            this.ClientSize = new System.Drawing.Size(831, 599);
             this.Controls.Add(this.groupBox2);
             this.MaximizeBox = false;
             this.Name = "Form1";
@@ -1122,7 +1158,7 @@ namespace THOR_T_Csharpe
         private System.Windows.Forms.Label label38;
         private System.Windows.Forms.ComboBox datum;
         private System.Windows.Forms.Label label36;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button defaultSaveButt;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.TextBox node11Box;
         private System.Windows.Forms.CheckBox detailBox;
@@ -1138,6 +1174,9 @@ namespace THOR_T_Csharpe
         private System.Windows.Forms.TextBox stepNumBox;
         private System.Windows.Forms.Label label20;
         private System.Windows.Forms.TextBox step1Box;
+        private System.Windows.Forms.Button defaultLoadButt;
+        private System.Windows.Forms.Button userLoadButt;
+        private System.Windows.Forms.Button userSaveButt;
     }
 }
 

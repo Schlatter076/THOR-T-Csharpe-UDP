@@ -1,4 +1,4 @@
-﻿//#define auto_test
+﻿#define auto_test
 
 using System;
 using System.Drawing;
@@ -68,7 +68,7 @@ namespace THOR_T_Csharpe
 #if auto_test
         private Thread autoThread = null;
         private bool auto_test_completed;
-        public int auto_test_counter = 0;
+        public int auto_test_counter = 190;
 #endif
         #endregion
         #region  系统加载，无需更改
@@ -83,7 +83,7 @@ namespace THOR_T_Csharpe
             {
                 nodes[i] = 0;
             }
-            getConfig();
+            getConfig(null);
             timer_TO = new System.Timers.Timer(8000);//实例化Timer类，设置间隔时间为10000毫秒；
             timer_TO.Elapsed += new System.Timers.ElapsedEventHandler(timeOut);//到达时间的时候执行事件；
             timer_TO.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
@@ -125,6 +125,15 @@ namespace THOR_T_Csharpe
             }
             if (g_handle != (IntPtr)0)
             {
+                //连接到控制器后先转动电机，再归零。
+                single_axis = Convert.ToInt32(axisnum.Text);
+                single_speed[single_axis] = Convert.ToSingle(single_sp.Text);
+                motorRun(-1);
+                Thread.Sleep(50);
+                zmcaux.ZAux_Direct_Single_Cancel(g_handle, single_axis, 2);
+                Thread.Sleep(50);
+                motorGoHome(3);
+                //======================
                 connect = 1;
                 timer1.Enabled = true;
                 connButt.Enabled = false;
@@ -280,29 +289,6 @@ namespace THOR_T_Csharpe
         private void button1_Click_1(object sender, EventArgs e)
         {
             richTextBox1.Clear();
-
-
-            //connect = 1;
-
-            /*byte[] bs = {0x31, 0x3A, 0x33, 0x37, 0x31, 0x2E, 0x37, 0x2C, 0x33, 0x36, 0x39, 0x33, 0x38, 0x2C, 0x31, 0x35, 0x34, 0x35, 0x2C, 0x35};
-
-            string message = Encoding.UTF8.GetString(bs, 0, bs.Length);
-            addInfoString(message);
-            string[] vals = message.Split(':')[1].Split(',');
-            current_forceVal = Convert.ToSingle(vals[0]);
-            addInfoString("" + current_forceVal);
-            addInfoString(vals[3]);*/
-            /*byte[] bytes = new byte[4] {0x9A, 0x72, 0x3B, 0x3E};
-            float f = BitConverter.ToSingle(bytes, 0);//从第0个字节开始转换
-            addInfoString(string.Format("{0:F8}", f));
-            byte[] f_bs = BitConverter.GetBytes(f);
-            string s = "";
-            for(int i = 0; i < 4; i++)
-            {
-                s += string.Format("{0:X00}", f_bs[i]);
-                s += " ";
-            }
-            addInfoString(s);*/
         }
         #endregion
         #region 单轴运动
@@ -727,67 +713,88 @@ namespace THOR_T_Csharpe
             }
         }
         #endregion
-        #region 保存参数事件
+        #region 保存默认配置事件
         private void button2_Click(object sender, EventArgs e)
         {
-            //connect = 1;
-            setConfig();
+            setConfig(null);
+            addInfoString("成功保存默认配置");
         }
         #endregion
         #region 加载及保存参数
-        private void getConfig()
+        private void getConfig(string fileName)
         {
-            comboBox1.Text = ConfigurationManager.AppSettings["Eth_IP"];
-            SocketIpBox.Text = ConfigurationManager.AppSettings["Soc_IP"];
-            portBox.Text = ConfigurationManager.AppSettings["Soc_PORT"];
-            axisnum.Text = ConfigurationManager.AppSettings["axisnum"];
-            single_sp.Text = ConfigurationManager.AppSettings["single_sp"];
-            datum.Text = ConfigurationManager.AppSettings["datum"];
-            datumsp.Text = ConfigurationManager.AppSettings["datumsp"];
-            datum_slow.Text = ConfigurationManager.AppSettings["datum_slow"];
-            node_numBox.Text = ConfigurationManager.AppSettings["node_num"];
-            node1Box.Text = ConfigurationManager.AppSettings["node1"];
-            node2Box.Text = ConfigurationManager.AppSettings["node2"];
-            node3Box.Text = ConfigurationManager.AppSettings["node3"];
-            node4Box.Text = ConfigurationManager.AppSettings["node4"];
-            node5Box.Text = ConfigurationManager.AppSettings["node5"];
-            node6Box.Text = ConfigurationManager.AppSettings["node6"];
-            node7Box.Text = ConfigurationManager.AppSettings["node7"];
-            node8Box.Text = ConfigurationManager.AppSettings["node8"];
-            node9Box.Text = ConfigurationManager.AppSettings["node9"];
-            node10Box.Text = ConfigurationManager.AppSettings["node10"];
-            node11Box.Text = ConfigurationManager.AppSettings["node11"];
-            stepBox.Text = ConfigurationManager.AppSettings["step"];
-            step1Box.Text = ConfigurationManager.AppSettings["step1"];
+            Configuration config;
+            if (fileName == null)
+            {
+                config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            }
+            else
+            {
+                ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
+                configFileMap.ExeConfigFilename = fileName;
+                config = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
+            }
+            comboBox1.Text = config.AppSettings.Settings["Eth_IP"].Value;
+            SocketIpBox.Text = config.AppSettings.Settings["Soc_IP"].Value;
+            portBox.Text = config.AppSettings.Settings["Soc_PORT"].Value;
+            axisnum.Text = config.AppSettings.Settings["axisnum"].Value;
+            single_sp.Text = config.AppSettings.Settings["single_sp"].Value;
+            datum.Text = config.AppSettings.Settings["datum"].Value;
+            datumsp.Text = config.AppSettings.Settings["datumsp"].Value;
+            datum_slow.Text = config.AppSettings.Settings["datum_slow"].Value;
+            node_numBox.Text = config.AppSettings.Settings["node_num"].Value;
+            node1Box.Text = config.AppSettings.Settings["node1"].Value;
+            node2Box.Text = config.AppSettings.Settings["node2"].Value;
+            node3Box.Text = config.AppSettings.Settings["node3"].Value;
+            node4Box.Text = config.AppSettings.Settings["node4"].Value;
+            node5Box.Text = config.AppSettings.Settings["node5"].Value;
+            node6Box.Text = config.AppSettings.Settings["node6"].Value;
+            node7Box.Text = config.AppSettings.Settings["node7"].Value;
+            node8Box.Text = config.AppSettings.Settings["node8"].Value;
+            node9Box.Text = config.AppSettings.Settings["node9"].Value;
+            node10Box.Text = config.AppSettings.Settings["node10"].Value;
+            node11Box.Text = config.AppSettings.Settings["node11"].Value;
+            stepBox.Text = config.AppSettings.Settings["step"].Value;
+            step1Box.Text = config.AppSettings.Settings["step1"].Value;
+            
         }
-        private void setConfig()
+        private void setConfig(string fileName)
         {
-            // 写入参数设置
-            Configuration configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            configuration.AppSettings.Settings["Eth_IP"].Value = this.comboBox1.Text;
-            configuration.AppSettings.Settings["Soc_IP"].Value = this.SocketIpBox.Text;
-            configuration.AppSettings.Settings["Soc_PORT"].Value = this.portBox.Text;
-            configuration.AppSettings.Settings["axisnum"].Value = this.axisnum.Text;
-            configuration.AppSettings.Settings["single_sp"].Value = this.single_sp.Text;
-            configuration.AppSettings.Settings["datum"].Value = this.datum.Text;
-            configuration.AppSettings.Settings["datumsp"].Value = this.datumsp.Text;
-            configuration.AppSettings.Settings["datum_slow"].Value = this.datum_slow.Text;
-            configuration.AppSettings.Settings["node_num"].Value = this.node_numBox.Text;
-            configuration.AppSettings.Settings["node1"].Value = this.node1Box.Text;
-            configuration.AppSettings.Settings["node2"].Value = this.node2Box.Text;
-            configuration.AppSettings.Settings["node3"].Value = this.node3Box.Text;
-            configuration.AppSettings.Settings["node4"].Value = this.node4Box.Text;
-            configuration.AppSettings.Settings["node5"].Value = this.node5Box.Text;
-            configuration.AppSettings.Settings["node6"].Value = this.node6Box.Text;
-            configuration.AppSettings.Settings["node7"].Value = this.node7Box.Text;
-            configuration.AppSettings.Settings["node8"].Value = this.node8Box.Text;
-            configuration.AppSettings.Settings["node9"].Value = this.node9Box.Text;
-            configuration.AppSettings.Settings["node10"].Value = this.node10Box.Text;
-            configuration.AppSettings.Settings["node11"].Value = this.node11Box.Text;
-            configuration.AppSettings.Settings["step"].Value = this.stepBox.Text;
-            configuration.AppSettings.Settings["step1"].Value = this.step1Box.Text;
-
-            configuration.Save();
+            Configuration config;
+            if (fileName == null)
+            {
+                config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            }
+            else
+            {
+                ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
+                configFileMap.ExeConfigFilename = fileName;
+                config = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
+            }
+            
+            config.AppSettings.Settings["Eth_IP"].Value = this.comboBox1.Text;
+            config.AppSettings.Settings["Soc_IP"].Value = this.SocketIpBox.Text;
+            config.AppSettings.Settings["Soc_PORT"].Value = this.portBox.Text;
+            config.AppSettings.Settings["axisnum"].Value = this.axisnum.Text;
+            config.AppSettings.Settings["single_sp"].Value = this.single_sp.Text;
+            config.AppSettings.Settings["datum"].Value = this.datum.Text;
+            config.AppSettings.Settings["datumsp"].Value = this.datumsp.Text;
+            config.AppSettings.Settings["datum_slow"].Value = this.datum_slow.Text;
+            config.AppSettings.Settings["node_num"].Value = this.node_numBox.Text;
+            config.AppSettings.Settings["node1"].Value = this.node1Box.Text;
+            config.AppSettings.Settings["node2"].Value = this.node2Box.Text;
+            config.AppSettings.Settings["node3"].Value = this.node3Box.Text;
+            config.AppSettings.Settings["node4"].Value = this.node4Box.Text;
+            config.AppSettings.Settings["node5"].Value = this.node5Box.Text;
+            config.AppSettings.Settings["node6"].Value = this.node6Box.Text;
+            config.AppSettings.Settings["node7"].Value = this.node7Box.Text;
+            config.AppSettings.Settings["node8"].Value = this.node8Box.Text;
+            config.AppSettings.Settings["node9"].Value = this.node9Box.Text;
+            config.AppSettings.Settings["node10"].Value = this.node10Box.Text;
+            config.AppSettings.Settings["node11"].Value = this.node11Box.Text;
+            config.AppSettings.Settings["step"].Value = this.stepBox.Text;
+            config.AppSettings.Settings["step1"].Value = this.step1Box.Text;
+            config.Save();
             ConfigurationManager.RefreshSection("appSettings");//重新加载新的配置文件
         }
         #endregion
@@ -868,10 +875,11 @@ namespace THOR_T_Csharpe
                     auto_test_counter++;
                     this.Text = "THOR测试系统===" + auto_test_counter;
                 }
+                Thread.Sleep(100);
             }
         }
 #endif
-
+        #region 按指定步长运行
         private void button3_Click_1(object sender, EventArgs e)
         {
             int step_num = Convert.ToInt32(stepNumBox.Text);
@@ -883,5 +891,45 @@ namespace THOR_T_Csharpe
             step_dist = Convert.ToSingle(step1Box.Text);
             motorRunStep(single_axis, single_speed[single_axis], step_dist * dir * step_num);
         }
+        #endregion
+        #region 加载默认配置事件
+        private void defaultLoadButt_Click(object sender, EventArgs e)
+        {
+            getConfig(null);
+            addInfoString("成功加载默认配置");
+        }
+        #endregion
+        #region 保存用户配置
+        private void userSaveButt_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openfile = new OpenFileDialog();
+            //初始显示文件目录
+            //openfile.InitialDirectory = @"";
+            openfile.Title = "请选择用户配置文件";
+            //过滤文件类型
+            openfile.Filter = "配置文件|*.Config";
+            if (DialogResult.OK == openfile.ShowDialog())
+            {
+                setConfig(openfile.FileName);
+                addInfoString("成功保存到用户配置!");
+            }
+        }
+        #endregion
+        #region  加载用户配置
+        private void userLoadButt_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openfile = new OpenFileDialog();
+            //初始显示文件目录
+            //openfile.InitialDirectory = @"";
+            openfile.Title = "请选择用户配置文件";
+            //过滤文件类型
+            openfile.Filter = "配置文件|*.Config";
+            if (DialogResult.OK == openfile.ShowDialog())
+            {
+                getConfig(openfile.FileName);
+                addInfoString("成功加载用户配置!");
+            }
+        }
+        #endregion
     }
 }
