@@ -423,7 +423,7 @@ namespace THOR_T_Csharpe
             }
             catch (Exception ex)
             {
-
+                LogHelper.WriteLog(ex.Message, ex);
             }
         }
         #endregion
@@ -474,7 +474,7 @@ namespace THOR_T_Csharpe
                     }
                     catch (Exception ex)
                     {
-                        addInfoString("连接串口异常:" + ex.Message);
+                        LogHelper.WriteLog("连接串口异常:" + ex.Message, ex);
                         serialPortButt.Text = "打开串口";
                     }
                 }
@@ -506,7 +506,7 @@ namespace THOR_T_Csharpe
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                LogHelper.WriteLog(ex.Message, ex);
             }
         }
         #endregion
@@ -528,6 +528,7 @@ namespace THOR_T_Csharpe
         #region  显示调试信息字符串
         private void addInfoString(string src)
         {
+            LogHelper.WriteLog(src);
             this.richTextBox1.AppendText(string.Format("{0:T}", DateTime.Now) + "::" + src + "\r\n");
         }
 
@@ -644,7 +645,7 @@ namespace THOR_T_Csharpe
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "Exception");
+                    LogHelper.WriteLog(ex.Message, ex);
                 }
 
                 //socketwatch.SendTo(Encoding.UTF8.GetBytes("测试是否能收到UDP消息"), remoteEndPoint);
