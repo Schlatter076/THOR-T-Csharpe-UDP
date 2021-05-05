@@ -1,4 +1,4 @@
-﻿#define auto_test
+﻿//#define auto_test
 
 using System;
 using System.Drawing;
@@ -13,6 +13,8 @@ using cszmcaux;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Newtonsoft.Json;
+using Microsoft.VisualBasic;
 
 namespace THOR_T_Csharpe
 {
@@ -34,15 +36,14 @@ namespace THOR_T_Csharpe
         public float[] single_speed = new float[4] { 1, 1, 1, 1 };  //单轴运动速度
         public int dir = -1;             //运动方向(默认负向==向上)
 
-        public float step_dist = 0.005f;  //电机单步运行步长
+        public volatile float step_dist = 0.005f;  //电机单步运行步长
 
         public int home_mode = 3;  //回零模式
         public float home_speed = 2;  //回零速度
         public float slow_speed = 1;  //回零爬行速度
 
         public int node_num = 0;  //待测试的节点总数
-        public volatile int[] nodes = new int[11];  //每一个节点的力度大小
-        public bool[] node_flags = new bool[11];  //到达每个节点的标志位
+        public volatile int[] nodes = new int[20];  //每一个节点的力度大小
         public volatile int node_counter = 0;  //已到达的节点计数器
         public volatile int old_counter = 0;  //上一次的节点计数器
         public float node_offset = 0.05f; //节点力度的浮动范围
@@ -64,11 +65,16 @@ namespace THOR_T_Csharpe
         private Thread threadwatch = null;  //socket监听线程
         private Thread threadMainTest = null; //主测试线程
 
+        //=====================================================
+        public int j_min_force = 0;  //采样推力点最小值
+        public int j_max_force = 0;  //采样推力点最大值
+        public int j_step;  //采样推力步进
+
         //自动测试用
 #if auto_test
         private Thread autoThread = null;
         private bool auto_test_completed;
-        public int auto_test_counter = 190;
+        public int auto_test_counter = 0;
 #endif
         #endregion
         #region  系统加载，无需更改
@@ -84,11 +90,11 @@ namespace THOR_T_Csharpe
                 nodes[i] = 0;
             }
             getConfig(null);
-            timer_TO = new System.Timers.Timer(8000);//实例化Timer类，设置间隔时间为10000毫秒；
+            timer_TO = new System.Timers.Timer(4000);//实例化Timer类，设置间隔时间为10000毫秒；
             timer_TO.Elapsed += new System.Timers.ElapsedEventHandler(timeOut);//到达时间的时候执行事件；
             timer_TO.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
             //力的差值过大自动调节一步
-            timer_AJ = new System.Timers.Timer(2000);//实例化Timer类，设置间隔时间为2000毫秒；
+            timer_AJ = new System.Timers.Timer(1500);//实例化Timer类，设置间隔时间为2000毫秒；
             timer_AJ.Elapsed += new System.Timers.ElapsedEventHandler(adjustment);//到达时间的时候执行事件；
             timer_AJ.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
 #if auto_test
@@ -101,58 +107,78 @@ namespace THOR_T_Csharpe
         #region 连接到控制器事件
         private void button1_Click(object sender, EventArgs e)  //连接到控制器
         {
-            if (g_handle == (IntPtr)0)
+            if(connButt.Text.Equals("连接"))
             {
-                Adrr = comboBox1.Text;
-                addInfoString("尝试连接IP:" + Adrr);
-                //zmcaux.ZAux_OpenEth(Adrr, out g_handle);
-                if (Adrr == "127.0.0.1")
+                if (g_handle == (IntPtr)0)
                 {
-                    zmcaux.ZAux_OpenEth(Adrr, out g_handle);
-                }
-                else
-                {
-                    aaa = zmcaux.ZAux_SearchEth(Adrr, 100);     //搜索控制器
-                    if (aaa == 0)
+                    Adrr = comboBox1.Text;
+                    addInfoString("尝试连接IP:" + Adrr);
+                    //zmcaux.ZAux_OpenEth(Adrr, out g_handle);
+                    if (Adrr == "127.0.0.1")
                     {
                         zmcaux.ZAux_OpenEth(Adrr, out g_handle);
                     }
                     else
                     {
-                        addInfoString("找不到控制器!");
+                        aaa = zmcaux.ZAux_SearchEth(Adrr, 100);     //搜索控制器
+                        if (aaa == 0)
+                        {
+                            zmcaux.ZAux_OpenEth(Adrr, out g_handle);
+                        }
+                        else
+                        {
+                            addInfoString("找不到控制器!");
+                        }
                     }
                 }
+                if (g_handle != (IntPtr)0)
+                {
+                    //连接到控制器后先转动电机，再归零。
+                    single_axis = Convert.ToInt32(axisnum.Text);
+                    single_speed[single_axis] = Convert.ToSingle(single_sp.Text);
+                    motorRun(-1);
+                    Thread.Sleep(50);
+                    zmcaux.ZAux_Direct_Single_Cancel(g_handle, single_axis, 2);
+                    Thread.Sleep(50);
+                    motorGoHome(3);
+                    //======================
+                    connect = 1;
+                    timer1.Enabled = true;
+                    connButt.Text = "断开";
+                    listenButt.PerformClick(); //监听端口
+                    addInfoString("成功连接到控制器");
+
+                    StringBuilder SoftType = new StringBuilder(20);
+                    StringBuilder SoftVersion = new StringBuilder(20);
+                    StringBuilder ControllerId = new StringBuilder(20);
+
+                    zmcaux.ZAux_GetControllerInfo(g_handle, SoftType, SoftVersion, ControllerId);
+
+                    c_type.Text = SoftType.ToString();
+                    c_id.Text = ControllerId.ToString();
+                    c_version.Text = SoftVersion.ToString();
+                }
+                else
+                {
+                    addInfoString("连接到控制器失败!");
+                }
             }
-            if (g_handle != (IntPtr)0)
+            else if(connButt.Text.Equals("断开"))
             {
-                //连接到控制器后先转动电机，再归零。
-                single_axis = Convert.ToInt32(axisnum.Text);
-                single_speed[single_axis] = Convert.ToSingle(single_sp.Text);
-                motorRun(-1);
-                Thread.Sleep(50);
-                zmcaux.ZAux_Direct_Single_Cancel(g_handle, single_axis, 2);
-                Thread.Sleep(50);
-                motorGoHome(3);
-                //======================
-                connect = 1;
-                timer1.Enabled = true;
-                connButt.Enabled = false;
-                addInfoString("成功连接到控制器");
-
-                StringBuilder SoftType = new StringBuilder(20);
-                StringBuilder SoftVersion = new StringBuilder(20);
-                StringBuilder ControllerId = new StringBuilder(20);
-
-                zmcaux.ZAux_GetControllerInfo(g_handle, SoftType, SoftVersion, ControllerId);
-
-                c_type.Text = SoftType.ToString();
-                c_id.Text = ControllerId.ToString();
-                c_version.Text = SoftVersion.ToString();
+                if (g_handle != (IntPtr)0)
+                {
+                    zmcaux.ZAux_Close(g_handle);
+                    g_handle = (IntPtr)0;
+                    connButt.Text = "连接";
+                    connect = 0;
+                    c_type.Text = " ";
+                    c_id.Text = " ";
+                    c_version.Text = " ";
+                }
+                addInfoString("未连接!!!");
+                timer1.Enabled = false;
             }
-            else
-            {
-                addInfoString("连接到控制器失败!");
-            }
+            
         }
         #endregion
         #region 启动测试事件
@@ -216,8 +242,11 @@ namespace THOR_T_Csharpe
                         motorGoHome(3);  //正向回零
                         timer_TO.Stop();
                         motor_GoOn = false;
-                        clearNodeFlags();
-                        addInfoString("测试中断,用时:" + (getCurrentMills() - start_mills) + "ms");
+                        node_counter = 0;
+                        old_counter = 0;
+                        long mills = getCurrentMills() - start_mills;
+                        testTimeLabel.Text = "" + mills;
+                        addInfoString("测试中断,用时:" + mills + "ms");
                     }
                 }
             }
@@ -225,6 +254,68 @@ namespace THOR_T_Csharpe
             {
                 addInfoString("请先连接控制器并监听端口!");
             }
+        }
+        #endregion
+        #region 远程控制启动和停止测试
+        private void remote_start()
+        {
+            if (connect == 1 && listenButt.Text.Equals("Listened"))
+            {
+                testButt.Text = "测试中";
+                testButt.BackColor = Color.Green;
+                //获取当前设置的轴
+                single_axis = Convert.ToInt32(axisnum.Text);
+                //获取当前轴的速度
+                single_speed[single_axis] = Convert.ToSingle(single_sp.Text);
+                //获取需要测试的节点数和每个节点的值
+                cac_nodes();
+                richTextBox1.Clear();  //清除日志显示区域
+
+                node_counter = 0;
+                old_counter = 0;
+
+                step_dist = Convert.ToSingle(stepBox.Text);
+
+                testTimeLabel.Text = "";
+
+                //主测试线程启动
+                threadMainTest = new Thread(test);
+                threadMainTest.IsBackground = true;
+                threadMainTest.Start();  //启动主测试流程
+                start_mills = getCurrentMills();
+            }
+        }
+        private void remote_stop()
+        {
+            testButt.Text = "启动测试";
+            testButt.BackColor = Color.Snow;
+            threadMainTest.Abort();
+            threadMainTest = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            motorGoHome(3);  //正向回零
+            timer_TO.Stop();
+            motor_GoOn = false;
+            node_counter = 0;
+            old_counter = 0;
+            long mills = getCurrentMills() - start_mills;
+            testTimeLabel.Text = "" + mills;
+            addInfoString("测试中断,用时:" + mills + "ms");
+        }
+        #endregion
+        #region 计算节点并填充各节点
+        private void cac_nodes()
+        {
+            int tem = j_max_force;
+            node_num = (j_max_force - j_min_force) / j_step + 1;
+            nodes[0] = j_max_force;
+            int i = 1;
+            for (; i < node_num - 1; i++)
+            {
+                tem -= j_step;
+                nodes[i] = tem;
+            }
+            nodes[i] = j_min_force;
         }
         #endregion
         #region 定时器1-检查控制器连接
@@ -237,7 +328,7 @@ namespace THOR_T_Csharpe
                 {
                     g_handle = (IntPtr)0;
                     addInfoString("未连接!!!");
-                    connButt.Enabled = true;
+                    connButt.Text = "连接";
                     connect = 0;
                     timer1.Enabled = false;
                     c_type.Text = " ";
@@ -288,7 +379,7 @@ namespace THOR_T_Csharpe
         #region 日志显示区域清理
         private void button1_Click_1(object sender, EventArgs e)
         {
-            richTextBox1.Clear();
+            this.richTextBox1.Clear();
         }
         #endregion
         #region 单轴运动
@@ -437,7 +528,7 @@ namespace THOR_T_Csharpe
         #region  显示调试信息字符串
         private void addInfoString(string src)
         {
-            richTextBox1.AppendText(string.Format("{0:T}", DateTime.Now) + "::" + src + "\r\n");
+            this.richTextBox1.AppendText(string.Format("{0:T}", DateTime.Now) + "::" + src + "\r\n");
         }
 
         #endregion
@@ -499,8 +590,66 @@ namespace THOR_T_Csharpe
                 {
                     addInfoString("From Port " + (remoteEndPoint as IPEndPoint).Port.ToString() + ">>" + message);
                 }
+                //===增加JSON解析===========================================================
+                try
+                {
+                    DataFormat srcData = JsonConvert.DeserializeObject<DataFormat>(message);
+                    //指令解析
+                    switch (srcData.cmd)
+                    {
+                        case "0":
+                            motor_GoOn = true;
+                            capture_forceVal = current_forceVal;
+                            addInfoString("Capture=" + capture_forceVal);
+                            //判断是否需要动态调节下一节点的测试值
+                            if (node_counter > 0 && node_counter < node_num && adjustCheckBox.Checked)
+                            {
+                               if(capture_forceVal <= (j_min_force + j_step * 2))
+                                {
+                                    nodes[node_counter] = j_min_force; 
+                                }
+                               else
+                                {
+                                    nodes[node_counter] = (int)capture_forceVal - j_step;
+                                }
+                            }
+                            break;
+                        case "1":
+                            current_forceVal = Convert.ToSingle(srcData.data[1]);
+                            if (current_forceVal > 20)
+                            {
+                                step_dist = Convert.ToSingle(step1Box.Text);
+                            }
+                            Accept_Succ = true;
+                            break;
+                        case "2":
+                            j_min_force = Convert.ToInt32(Convert.ToSingle(srcData.parameters[0]));
+                            j_max_force = Convert.ToInt32(Convert.ToSingle(srcData.parameters[1]));
+                            j_step = Convert.ToInt32(Convert.ToSingle(srcData.parameters[2])) + 15;
+                            break;
+                        //start
+                        case "3":
+                            j_min_force = Convert.ToInt32(Convert.ToSingle(srcData.parameters[0]));
+                            j_max_force = Convert.ToInt32(Convert.ToSingle(srcData.parameters[1]));
+                            j_step = Convert.ToInt32(Convert.ToSingle(srcData.parameters[2])) + 15;
+                            remote_start();
+                            break;
+                        //stop
+                        case "4":
+                            remote_stop();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Exception");
+                }
+
                 //socketwatch.SendTo(Encoding.UTF8.GetBytes("测试是否能收到UDP消息"), remoteEndPoint);
-                if (message.Contains("OK"))
+                //================非JSON解析方式
+                /*if (message.Contains("OK"))
                 {
                     motor_GoOn = true;
                     capture_forceVal = current_forceVal;
@@ -521,7 +670,7 @@ namespace THOR_T_Csharpe
                         step_dist = Convert.ToSingle(step1Box.Text);
                     }
                     Accept_Succ = true;
-                }
+                }*/
                 // 回收临时数据
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
@@ -539,11 +688,11 @@ namespace THOR_T_Csharpe
                     {
                         /*if (current_forceVal <= (nodes[node_counter] + nodes[node_counter] * node_offset) &&
                             current_forceVal >= (nodes[node_counter] - nodes[node_counter] * node_offset))*/
-                        if (current_forceVal <= (nodes[node_counter] + 20) &&
-                        current_forceVal >= (nodes[node_counter] - 20))
+                        if (current_forceVal <= (nodes[node_counter] + 10) &&
+                        current_forceVal >= (nodes[node_counter] - 10))
                         {
                             addInfoString("到达节点" + (node_counter + 1) + ",F=" + current_forceVal);
-                            if(node_counter == 0)
+                            if (node_counter == 0)
                             {
                                 addInfoString("已运行:" + (getCurrentMills() - start_mills) + "ms");
                             }
@@ -558,12 +707,12 @@ namespace THOR_T_Csharpe
                         }
                         //每次读取拉力大小，确保电机要走的方向
                         //else if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
-                        else if (current_forceVal < (nodes[node_counter] - 20))
+                        else if (current_forceVal < (nodes[node_counter] - 10))
                         {
                             motorRunStep(single_axis, single_speed[single_axis], step_dist * -1);
                         }
                         //else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
-                        else if (current_forceVal > (nodes[node_counter] + 20))
+                        else if (current_forceVal > (nodes[node_counter] + 10))
                         {
                             motorRunStep(single_axis, single_speed[single_axis], step_dist);
                         }
@@ -584,7 +733,7 @@ namespace THOR_T_Csharpe
                             testTimeLabel.Text = "" + (getCurrentMills() - start_mills);
                             testButt.Text = "启动测试";
                             testButt.BackColor = Color.Snow;
-                            clearNodeFlags();
+                            
                             motorGoHome(3); //回原点
                             node_counter = 0;
                             old_counter = 0;
@@ -703,16 +852,6 @@ namespace THOR_T_Csharpe
             }
         }
         #endregion
-        #region  清除节点标志位
-        private void clearNodeFlags()
-        {
-            node_counter = 0;
-            for (int i = 0; i < 10; i++)
-            {
-                node_flags[i] = false;
-            }
-        }
-        #endregion
         #region 保存默认配置事件
         private void button2_Click(object sender, EventArgs e)
         {
@@ -756,7 +895,7 @@ namespace THOR_T_Csharpe
             node11Box.Text = config.AppSettings.Settings["node11"].Value;
             stepBox.Text = config.AppSettings.Settings["step"].Value;
             step1Box.Text = config.AppSettings.Settings["step1"].Value;
-            
+
         }
         private void setConfig(string fileName)
         {
@@ -771,7 +910,7 @@ namespace THOR_T_Csharpe
                 configFileMap.ExeConfigFilename = fileName;
                 config = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
             }
-            
+
             config.AppSettings.Settings["Eth_IP"].Value = this.comboBox1.Text;
             config.AppSettings.Settings["Soc_IP"].Value = this.SocketIpBox.Text;
             config.AppSettings.Settings["Soc_PORT"].Value = this.portBox.Text;
@@ -812,8 +951,14 @@ namespace THOR_T_Csharpe
             {
                 addInfoString("捕获超时,自动调节");
                 node_counter -= 1;
-                //超时后必须按照上一次捕获值重新进行调节节点值
-                nodes[node_counter] = (capture_forceVal > 80) ? ((int)capture_forceVal - 50) : ((int)capture_forceVal + 50);
+                if (capture_forceVal <= (j_min_force + j_step * 2))
+                {
+                    nodes[node_counter] = j_min_force;
+                }
+                else
+                {
+                    nodes[node_counter] = (int)capture_forceVal - j_step;
+                }
             }
         }
         #endregion
@@ -821,12 +966,12 @@ namespace THOR_T_Csharpe
         private void adjustment(object source, System.Timers.ElapsedEventArgs e)
         {
             //if (current_forceVal < (nodes[node_counter] - nodes[node_counter] * node_offset))
-            if (current_forceVal < (nodes[node_counter - 1] - 20))
+            if (current_forceVal < (nodes[node_counter - 1] - 10))
             {
                 motorRunStep(single_axis, single_speed[single_axis], step_dist * -1);
             }
             //else if (current_forceVal > (nodes[node_counter] + nodes[node_counter] * node_offset))
-            else if (current_forceVal > (nodes[node_counter - 1] + 20))
+            else if (current_forceVal > (nodes[node_counter - 1] + 10))
             {
                 motorRunStep(single_axis, single_speed[single_axis], step_dist);
             }
@@ -928,6 +1073,86 @@ namespace THOR_T_Csharpe
             {
                 getConfig(openfile.FileName);
                 addInfoString("成功加载用户配置!");
+            }
+        }
+        #endregion
+        #region  解锁参数事件
+        private void lockButt_Click(object sender, EventArgs e)
+        {
+            if(lockButt.Text.Equals("locked"))
+            {
+                string pwd = InputBox.ShowInputBox("请输入管理员(admin)的密码", string.Empty);
+                if (pwd.Trim() != string.Empty)
+                {
+                    if(pwd.Equals("THOR123")) //密码正确
+                    {
+                        lockButt.Text = "unlock";
+                        comboBox1.Enabled = true;
+                        SocketIpBox.ReadOnly = false;
+                        portBox.ReadOnly = false;
+                        axisnum.Enabled = true;
+                        single_StopButt.Enabled = true;
+                        single_sp.ReadOnly = false;
+                        checkBox1.Enabled = true;
+                        datum.Enabled = true;
+                        datumsp.ReadOnly = false;
+                        datum_slow.ReadOnly = false;
+                        stepBox.ReadOnly = false;
+                        step1Box.ReadOnly = false;
+                        stepNumBox.ReadOnly = false;
+                        goButt.Enabled = true;
+                        sigle_moveButt.Enabled = true;
+                        datumButt.Enabled = true;
+                        upButt.Enabled = true;
+                        downButt.Enabled = true;
+                        node_numBox.ReadOnly = false;
+                        node1Box.ReadOnly = false;
+                        node2Box.ReadOnly = false;
+                        node3Box.ReadOnly = false;
+                        node4Box.ReadOnly = false;
+                        node5Box.ReadOnly = false;
+                        node6Box.ReadOnly = false;
+                        node7Box.ReadOnly = false;
+                        node8Box.ReadOnly = false;
+                        node9Box.ReadOnly = false;
+                        node10Box.ReadOnly = false;
+                        node11Box.ReadOnly = false;
+                    }
+                }
+            }
+            else if(lockButt.Text.Equals("unlock"))
+            {
+                lockButt.Text = "locked";
+                comboBox1.Enabled = false;
+                SocketIpBox.ReadOnly = true;
+                portBox.ReadOnly = true;
+                axisnum.Enabled = false;
+                single_StopButt.Enabled = false;
+                single_sp.ReadOnly = true;
+                checkBox1.Enabled = false;
+                datum.Enabled = false;
+                datumsp.ReadOnly = true;
+                datum_slow.ReadOnly = true;
+                stepBox.ReadOnly = true;
+                step1Box.ReadOnly = true;
+                stepNumBox.ReadOnly = true;
+                goButt.Enabled = false;
+                sigle_moveButt.Enabled = false;
+                datumButt.Enabled = false;
+                upButt.Enabled = false;
+                downButt.Enabled = false;
+                node_numBox.ReadOnly = true;
+                node1Box.ReadOnly = true;
+                node2Box.ReadOnly = true;
+                node3Box.ReadOnly = true;
+                node4Box.ReadOnly = true;
+                node5Box.ReadOnly = true;
+                node6Box.ReadOnly = true;
+                node7Box.ReadOnly = true;
+                node8Box.ReadOnly = true;
+                node9Box.ReadOnly = true;
+                node10Box.ReadOnly = true;
+                node11Box.ReadOnly = true;
             }
         }
         #endregion

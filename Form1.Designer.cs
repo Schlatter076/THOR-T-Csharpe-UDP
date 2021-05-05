@@ -41,7 +41,6 @@ namespace THOR_T_Csharpe
             this.label2 = new System.Windows.Forms.Label();
             this.testButt = new System.Windows.Forms.Button();
             this.comboBox3 = new System.Windows.Forms.ComboBox();
-            this.closeButt = new System.Windows.Forms.Button();
             this.comboBox2 = new System.Windows.Forms.ComboBox();
             this.connButt = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
@@ -116,6 +115,7 @@ namespace THOR_T_Csharpe
             this.defaultSaveButt = new System.Windows.Forms.Button();
             this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.lockButt = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -137,7 +137,6 @@ namespace THOR_T_Csharpe
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.testButt);
             this.groupBox1.Controls.Add(this.comboBox3);
-            this.groupBox1.Controls.Add(this.closeButt);
             this.groupBox1.Controls.Add(this.comboBox2);
             this.groupBox1.Controls.Add(this.connButt);
             this.groupBox1.Controls.Add(this.label3);
@@ -179,6 +178,7 @@ namespace THOR_T_Csharpe
             // 
             this.portBox.Location = new System.Drawing.Point(253, 74);
             this.portBox.Name = "portBox";
+            this.portBox.ReadOnly = true;
             this.portBox.Size = new System.Drawing.Size(63, 21);
             this.portBox.TabIndex = 13;
             this.portBox.Text = "50088";
@@ -197,6 +197,7 @@ namespace THOR_T_Csharpe
             // 
             this.SocketIpBox.Location = new System.Drawing.Point(83, 74);
             this.SocketIpBox.Name = "SocketIpBox";
+            this.SocketIpBox.ReadOnly = true;
             this.SocketIpBox.Size = new System.Drawing.Size(96, 21);
             this.SocketIpBox.TabIndex = 11;
             this.SocketIpBox.Text = "127.0.0.1";
@@ -235,6 +236,7 @@ namespace THOR_T_Csharpe
             // 
             this.testButt.BackColor = System.Drawing.Color.Snow;
             this.testButt.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.testButt.Enabled = false;
             this.testButt.Font = new System.Drawing.Font("宋体", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.testButt.Location = new System.Drawing.Point(436, 26);
             this.testButt.Name = "testButt";
@@ -246,6 +248,7 @@ namespace THOR_T_Csharpe
             // 
             // comboBox3
             // 
+            this.comboBox3.Enabled = false;
             this.comboBox3.FormattingEnabled = true;
             this.comboBox3.Items.AddRange(new object[] {
             "4800",
@@ -258,18 +261,9 @@ namespace THOR_T_Csharpe
             this.comboBox3.TabIndex = 7;
             this.comboBox3.Text = "115200";
             // 
-            // closeButt
-            // 
-            this.closeButt.Location = new System.Drawing.Point(332, 26);
-            this.closeButt.Name = "closeButt";
-            this.closeButt.Size = new System.Drawing.Size(80, 24);
-            this.closeButt.TabIndex = 3;
-            this.closeButt.Text = "断开";
-            this.closeButt.UseVisualStyleBackColor = true;
-            this.closeButt.Click += new System.EventHandler(this.closeButt_Click);
-            // 
             // comboBox2
             // 
+            this.comboBox2.Enabled = false;
             this.comboBox2.FormattingEnabled = true;
             this.comboBox2.Items.AddRange(new object[] {
             "COM1",
@@ -300,9 +294,9 @@ namespace THOR_T_Csharpe
             // 
             // connButt
             // 
-            this.connButt.Location = new System.Drawing.Point(229, 26);
+            this.connButt.Location = new System.Drawing.Point(290, 26);
             this.connButt.Name = "connButt";
-            this.connButt.Size = new System.Drawing.Size(87, 24);
+            this.connButt.Size = new System.Drawing.Size(122, 24);
             this.connButt.TabIndex = 2;
             this.connButt.Text = "连接";
             this.connButt.UseVisualStyleBackColor = true;
@@ -319,6 +313,7 @@ namespace THOR_T_Csharpe
             // 
             // comboBox1
             // 
+            this.comboBox1.Enabled = false;
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Items.AddRange(new object[] {
             "127.0.0.1"});
@@ -340,6 +335,7 @@ namespace THOR_T_Csharpe
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.lockButt);
             this.groupBox2.Controls.Add(this.userLoadButt);
             this.groupBox2.Controls.Add(this.userSaveButt);
             this.groupBox2.Controls.Add(this.defaultLoadButt);
@@ -598,6 +594,7 @@ namespace THOR_T_Csharpe
             // 
             this.node11Box.Location = new System.Drawing.Point(92, 327);
             this.node11Box.Name = "node11Box";
+            this.node11Box.ReadOnly = true;
             this.node11Box.Size = new System.Drawing.Size(100, 21);
             this.node11Box.TabIndex = 25;
             this.node11Box.Text = "80";
@@ -616,6 +613,7 @@ namespace THOR_T_Csharpe
             // 
             this.node10Box.Location = new System.Drawing.Point(92, 299);
             this.node10Box.Name = "node10Box";
+            this.node10Box.ReadOnly = true;
             this.node10Box.Size = new System.Drawing.Size(100, 21);
             this.node10Box.TabIndex = 23;
             this.node10Box.Text = "150";
@@ -634,6 +632,7 @@ namespace THOR_T_Csharpe
             // 
             this.node9Box.Location = new System.Drawing.Point(92, 271);
             this.node9Box.Name = "node9Box";
+            this.node9Box.ReadOnly = true;
             this.node9Box.Size = new System.Drawing.Size(100, 21);
             this.node9Box.TabIndex = 21;
             this.node9Box.Text = "200";
@@ -652,6 +651,7 @@ namespace THOR_T_Csharpe
             // 
             this.node8Box.Location = new System.Drawing.Point(92, 243);
             this.node8Box.Name = "node8Box";
+            this.node8Box.ReadOnly = true;
             this.node8Box.Size = new System.Drawing.Size(100, 21);
             this.node8Box.TabIndex = 19;
             this.node8Box.Text = "250";
@@ -670,6 +670,7 @@ namespace THOR_T_Csharpe
             // 
             this.node7Box.Location = new System.Drawing.Point(92, 215);
             this.node7Box.Name = "node7Box";
+            this.node7Box.ReadOnly = true;
             this.node7Box.Size = new System.Drawing.Size(100, 21);
             this.node7Box.TabIndex = 17;
             this.node7Box.Text = "300";
@@ -688,6 +689,7 @@ namespace THOR_T_Csharpe
             // 
             this.node6Box.Location = new System.Drawing.Point(92, 187);
             this.node6Box.Name = "node6Box";
+            this.node6Box.ReadOnly = true;
             this.node6Box.Size = new System.Drawing.Size(100, 21);
             this.node6Box.TabIndex = 15;
             this.node6Box.Text = "350";
@@ -706,6 +708,7 @@ namespace THOR_T_Csharpe
             // 
             this.node5Box.Location = new System.Drawing.Point(92, 159);
             this.node5Box.Name = "node5Box";
+            this.node5Box.ReadOnly = true;
             this.node5Box.Size = new System.Drawing.Size(100, 21);
             this.node5Box.TabIndex = 13;
             this.node5Box.Text = "400";
@@ -724,6 +727,7 @@ namespace THOR_T_Csharpe
             // 
             this.node4Box.Location = new System.Drawing.Point(92, 131);
             this.node4Box.Name = "node4Box";
+            this.node4Box.ReadOnly = true;
             this.node4Box.Size = new System.Drawing.Size(100, 21);
             this.node4Box.TabIndex = 11;
             this.node4Box.Text = "450";
@@ -742,6 +746,7 @@ namespace THOR_T_Csharpe
             // 
             this.node3Box.Location = new System.Drawing.Point(92, 103);
             this.node3Box.Name = "node3Box";
+            this.node3Box.ReadOnly = true;
             this.node3Box.Size = new System.Drawing.Size(100, 21);
             this.node3Box.TabIndex = 9;
             this.node3Box.Text = "500";
@@ -760,6 +765,7 @@ namespace THOR_T_Csharpe
             // 
             this.node2Box.Location = new System.Drawing.Point(92, 75);
             this.node2Box.Name = "node2Box";
+            this.node2Box.ReadOnly = true;
             this.node2Box.Size = new System.Drawing.Size(100, 21);
             this.node2Box.TabIndex = 6;
             this.node2Box.Text = "550";
@@ -778,6 +784,7 @@ namespace THOR_T_Csharpe
             // 
             this.node1Box.Location = new System.Drawing.Point(92, 47);
             this.node1Box.Name = "node1Box";
+            this.node1Box.ReadOnly = true;
             this.node1Box.Size = new System.Drawing.Size(100, 21);
             this.node1Box.TabIndex = 3;
             this.node1Box.Text = "600";
@@ -787,6 +794,7 @@ namespace THOR_T_Csharpe
             // 
             this.node_numBox.Location = new System.Drawing.Point(92, 19);
             this.node_numBox.Name = "node_numBox";
+            this.node_numBox.ReadOnly = true;
             this.node_numBox.Size = new System.Drawing.Size(100, 21);
             this.node_numBox.TabIndex = 1;
             this.node_numBox.Text = "11";
@@ -836,6 +844,7 @@ namespace THOR_T_Csharpe
             // 
             this.step1Box.Location = new System.Drawing.Point(113, 302);
             this.step1Box.Name = "step1Box";
+            this.step1Box.ReadOnly = true;
             this.step1Box.Size = new System.Drawing.Size(53, 21);
             this.step1Box.TabIndex = 52;
             this.step1Box.Text = "0.005";
@@ -843,6 +852,7 @@ namespace THOR_T_Csharpe
             // 
             // goButt
             // 
+            this.goButt.Enabled = false;
             this.goButt.Location = new System.Drawing.Point(113, 330);
             this.goButt.Name = "goButt";
             this.goButt.Size = new System.Drawing.Size(53, 23);
@@ -855,6 +865,7 @@ namespace THOR_T_Csharpe
             // 
             this.stepNumBox.Location = new System.Drawing.Point(54, 332);
             this.stepNumBox.Name = "stepNumBox";
+            this.stepNumBox.ReadOnly = true;
             this.stepNumBox.Size = new System.Drawing.Size(49, 21);
             this.stepNumBox.TabIndex = 50;
             this.stepNumBox.Text = "5";
@@ -871,6 +882,7 @@ namespace THOR_T_Csharpe
             // 
             // downButt
             // 
+            this.downButt.Enabled = false;
             this.downButt.Location = new System.Drawing.Point(205, 330);
             this.downButt.Name = "downButt";
             this.downButt.Size = new System.Drawing.Size(32, 23);
@@ -881,6 +893,7 @@ namespace THOR_T_Csharpe
             // 
             // upButt
             // 
+            this.upButt.Enabled = false;
             this.upButt.Location = new System.Drawing.Point(205, 297);
             this.upButt.Name = "upButt";
             this.upButt.Size = new System.Drawing.Size(32, 23);
@@ -893,6 +906,7 @@ namespace THOR_T_Csharpe
             // 
             this.stepBox.Location = new System.Drawing.Point(54, 302);
             this.stepBox.Name = "stepBox";
+            this.stepBox.ReadOnly = true;
             this.stepBox.Size = new System.Drawing.Size(52, 21);
             this.stepBox.TabIndex = 45;
             this.stepBox.Text = "0.125";
@@ -909,6 +923,7 @@ namespace THOR_T_Csharpe
             // 
             // datumButt
             // 
+            this.datumButt.Enabled = false;
             this.datumButt.Location = new System.Drawing.Point(193, 213);
             this.datumButt.Name = "datumButt";
             this.datumButt.Size = new System.Drawing.Size(66, 28);
@@ -921,6 +936,7 @@ namespace THOR_T_Csharpe
             // 
             this.datum_slow.Location = new System.Drawing.Point(114, 260);
             this.datum_slow.Name = "datum_slow";
+            this.datum_slow.ReadOnly = true;
             this.datum_slow.Size = new System.Drawing.Size(52, 21);
             this.datum_slow.TabIndex = 41;
             this.datum_slow.Text = "1";
@@ -938,6 +954,7 @@ namespace THOR_T_Csharpe
             // 
             this.datumsp.Location = new System.Drawing.Point(114, 213);
             this.datumsp.Name = "datumsp";
+            this.datumsp.ReadOnly = true;
             this.datumsp.Size = new System.Drawing.Size(52, 21);
             this.datumsp.TabIndex = 39;
             this.datumsp.Text = "2";
@@ -953,6 +970,7 @@ namespace THOR_T_Csharpe
             // 
             // datum
             // 
+            this.datum.Enabled = false;
             this.datum.FormattingEnabled = true;
             this.datum.Items.AddRange(new object[] {
             "3",
@@ -979,6 +997,7 @@ namespace THOR_T_Csharpe
             this.checkBox1.AutoSize = true;
             this.checkBox1.Checked = true;
             this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox1.Enabled = false;
             this.checkBox1.Location = new System.Drawing.Point(13, 127);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(96, 16);
@@ -991,6 +1010,7 @@ namespace THOR_T_Csharpe
             // 
             this.single_sp.Location = new System.Drawing.Point(115, 74);
             this.single_sp.Name = "single_sp";
+            this.single_sp.ReadOnly = true;
             this.single_sp.Size = new System.Drawing.Size(52, 21);
             this.single_sp.TabIndex = 34;
             this.single_sp.Text = "1";
@@ -1007,6 +1027,7 @@ namespace THOR_T_Csharpe
             // 
             // single_StopButt
             // 
+            this.single_StopButt.Enabled = false;
             this.single_StopButt.Location = new System.Drawing.Point(194, 29);
             this.single_StopButt.Name = "single_StopButt";
             this.single_StopButt.Size = new System.Drawing.Size(66, 28);
@@ -1017,6 +1038,7 @@ namespace THOR_T_Csharpe
             // 
             // sigle_moveButt
             // 
+            this.sigle_moveButt.Enabled = false;
             this.sigle_moveButt.Location = new System.Drawing.Point(194, 120);
             this.sigle_moveButt.Name = "sigle_moveButt";
             this.sigle_moveButt.Size = new System.Drawing.Size(66, 28);
@@ -1027,6 +1049,7 @@ namespace THOR_T_Csharpe
             // 
             // axisnum
             // 
+            this.axisnum.Enabled = false;
             this.axisnum.FormattingEnabled = true;
             this.axisnum.Items.AddRange(new object[] {
             "0",
@@ -1064,13 +1087,23 @@ namespace THOR_T_Csharpe
             this.timer1.Interval = 100000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // lockButt
+            // 
+            this.lockButt.Location = new System.Drawing.Point(222, 556);
+            this.lockButt.Name = "lockButt";
+            this.lockButt.Size = new System.Drawing.Size(75, 23);
+            this.lockButt.TabIndex = 80;
+            this.lockButt.Text = "locked";
+            this.lockButt.UseVisualStyleBackColor = true;
+            this.lockButt.Click += new System.EventHandler(this.lockButt_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(831, 599);
+            this.ClientSize = new System.Drawing.Size(824, 601);
             this.Controls.Add(this.groupBox2);
             this.MaximizeBox = false;
             this.Name = "Form1";
@@ -1094,7 +1127,6 @@ namespace THOR_T_Csharpe
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button closeButt;
         private System.Windows.Forms.Button connButt;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label label3;
@@ -1177,6 +1209,7 @@ namespace THOR_T_Csharpe
         private System.Windows.Forms.Button defaultLoadButt;
         private System.Windows.Forms.Button userLoadButt;
         private System.Windows.Forms.Button userSaveButt;
+        private System.Windows.Forms.Button lockButt;
     }
 }
 
