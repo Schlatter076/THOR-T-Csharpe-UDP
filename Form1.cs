@@ -107,7 +107,7 @@ namespace THOR_T_Csharpe
         #region 连接到控制器事件
         private void button1_Click(object sender, EventArgs e)  //连接到控制器
         {
-            if(connButt.Text.Equals("连接"))
+            if (connButt.Text.Equals("连接"))
             {
                 if (g_handle == (IntPtr)0)
                 {
@@ -145,7 +145,10 @@ namespace THOR_T_Csharpe
                     connect = 1;
                     timer1.Enabled = true;
                     connButt.Text = "断开";
-                    listenButt.PerformClick(); //监听端口
+                    if (listenButt.Text.Equals("监听"))
+                    {
+                        listenButt.PerformClick(); //监听端口
+                    }
                     addInfoString("成功连接到控制器");
 
                     StringBuilder SoftType = new StringBuilder(20);
@@ -163,7 +166,7 @@ namespace THOR_T_Csharpe
                     addInfoString("连接到控制器失败!");
                 }
             }
-            else if(connButt.Text.Equals("断开"))
+            else if (connButt.Text.Equals("断开"))
             {
                 if (g_handle != (IntPtr)0)
                 {
@@ -178,7 +181,7 @@ namespace THOR_T_Csharpe
                 addInfoString("未连接!!!");
                 timer1.Enabled = false;
             }
-            
+
         }
         #endregion
         #region 启动测试事件
@@ -600,16 +603,16 @@ namespace THOR_T_Csharpe
                     {
                         case "0":
                             motor_GoOn = true;
-                            capture_forceVal = current_forceVal;
+                            capture_forceVal = Convert.ToSingle(srcData.data[1]);
                             addInfoString("Capture=" + capture_forceVal);
                             //判断是否需要动态调节下一节点的测试值
                             if (node_counter > 0 && node_counter < node_num && adjustCheckBox.Checked)
                             {
-                               if(capture_forceVal <= (j_min_force + j_step * 2))
+                                if (capture_forceVal <= (j_min_force + j_step * 2))
                                 {
-                                    nodes[node_counter] = j_min_force; 
+                                    nodes[node_counter] = j_min_force;
                                 }
-                               else
+                                else
                                 {
                                     nodes[node_counter] = (int)capture_forceVal - j_step;
                                 }
@@ -626,13 +629,13 @@ namespace THOR_T_Csharpe
                         case "2":
                             j_min_force = Convert.ToInt32(Convert.ToSingle(srcData.parameters[0]));
                             j_max_force = Convert.ToInt32(Convert.ToSingle(srcData.parameters[1]));
-                            j_step = Convert.ToInt32(Convert.ToSingle(srcData.parameters[2])) + 15;
+                            j_step = Convert.ToInt32(Convert.ToSingle(srcData.parameters[2])) + 20;
                             break;
                         //start
                         case "3":
                             j_min_force = Convert.ToInt32(Convert.ToSingle(srcData.parameters[0]));
                             j_max_force = Convert.ToInt32(Convert.ToSingle(srcData.parameters[1]));
-                            j_step = Convert.ToInt32(Convert.ToSingle(srcData.parameters[2])) + 15;
+                            j_step = Convert.ToInt32(Convert.ToSingle(srcData.parameters[2])) + 20;
                             remote_start();
                             break;
                         //stop
@@ -734,7 +737,7 @@ namespace THOR_T_Csharpe
                             testTimeLabel.Text = "" + (getCurrentMills() - start_mills);
                             testButt.Text = "启动测试";
                             testButt.BackColor = Color.Snow;
-                            
+
                             motorGoHome(3); //回原点
                             node_counter = 0;
                             old_counter = 0;
@@ -961,6 +964,10 @@ namespace THOR_T_Csharpe
                     nodes[node_counter] = (int)capture_forceVal - j_step;
                 }
             }
+            else if (node_counter == 1)
+            {
+                motor_GoOn = true;
+            }
         }
         #endregion
         #region 自动调节电机位置
@@ -1080,12 +1087,12 @@ namespace THOR_T_Csharpe
         #region  解锁参数事件
         private void lockButt_Click(object sender, EventArgs e)
         {
-            if(lockButt.Text.Equals("locked"))
+            if (lockButt.Text.Equals("locked"))
             {
                 string pwd = InputBox.ShowInputBox("请输入管理员(admin)的密码", string.Empty);
                 if (pwd.Trim() != string.Empty)
                 {
-                    if(pwd.Equals("THOR123")) //密码正确
+                    if (pwd.Equals("THOR123")) //密码正确
                     {
                         lockButt.Text = "unlock";
                         comboBox1.Enabled = true;
@@ -1121,7 +1128,7 @@ namespace THOR_T_Csharpe
                     }
                 }
             }
-            else if(lockButt.Text.Equals("unlock"))
+            else if (lockButt.Text.Equals("unlock"))
             {
                 lockButt.Text = "locked";
                 comboBox1.Enabled = false;

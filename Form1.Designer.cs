@@ -1107,7 +1107,7 @@ namespace THOR_T_Csharpe
             this.Controls.Add(this.groupBox2);
             this.MaximizeBox = false;
             this.Name = "Form1";
-            this.Text = "THOR测试系统";
+            this.Text = "THOR-Daemon";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
